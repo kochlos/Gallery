@@ -1139,8 +1139,7 @@ async function syncFromGitHub(btn) {
       if (!r.ok) throw new Error('Не удалось загрузить ' + f.name);
       const meta = await r.json();
       // GitHub API returns base64-encoded content
-      const decoded = atob(meta.content.replace(/
-/g, ''));
+      const decoded = atob(meta.content.replace(/\n/g, ''));
       const data = JSON.parse(decoded);
       return { name: f.name.replace('.json', ''), packNum: packNumFromName(f.name.replace('.json','')), data };
     }));
