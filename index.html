@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level Viewer</title>
+<style>
+  :root {
+    --bg: #f2f7fc;
+    --surface: #ffffff;
+    --surface2: #eef2f8;
+    --border: #d6e0ed;
+    --accent: #4f6ef7;
+    --accent2: #7c5cfc;
+    --text: #1a2035;
+    --muted: #7a8aaa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(79,110,247,0.07);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--accent2);
+    flex: 1;
+  }
+
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .upload-btn:hover { background: var(--accent2); }
+  #fileInput { display: none; }
+
+  .filter-group { display: flex; gap: 4px; }
+
+  .jump-group { display: flex; gap: 4px; align-items: center; }
+
+  .chapter-select {
+    padding: 6px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    max-width: 160px;
+    transition: border-color 0.15s;
+  }
+  .chapter-select:focus { border-color: var(--accent); }
+  .filter-btn {
+    padding: 6px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter-btn:hover:not(.active) { border-color: var(--accent2); color: var(--text); }
+
+  .snapshot-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .snapshot-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .snapshot-btn.copied { border-color: #51cf66; color: #51cf66; }
+
+  .token-group { display: flex; align-items: center; gap: 6px; }
+  .token-input {
+    padding: 6px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: monospace;
+    outline: none;
+    width: 160px;
+    transition: border-color 0.15s;
+  }
+  .token-input:focus { border-color: var(--accent); }
+  .token-input::placeholder { color: var(--muted); font-family: inherit; }
+  .token-save-btn {
+    padding: 6px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .token-save-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .token-save-btn.saved { border-color: #51cf66; color: #51cf66; }
+
+  .sync-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sync-btn:hover { border-color: #38a5ff; color: #38a5ff; }
+  .sync-btn.syncing { border-color: #38a5ff; color: #38a5ff; pointer-events: none; }
+  .sync-btn.syncing svg { animation: spin 1s linear infinite; }
+  .sync-btn.done { border-color: #51cf66; color: #51cf66; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #app { padding: 24px 28px; }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    gap: 16px;
+    color: var(--muted);
+  }
+  .empty-state svg { opacity: 0.3; }
+  .empty-state p { font-size: 15px; }
+
+  .pack-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    padding: 12px 0;
+    border-bottom: 2px solid var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .chapter-block { margin-bottom: 36px; }
+
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    background: #eef2f8;
+    border-radius: 8px;
+  }
+  .chapter-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .chapter-count { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .ch-stats { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-right: auto; }
+
+  .levels-grid { display: flex; flex-wrap: wrap; gap: 14px; }
+
+  /* ── Card ── */
+  .level-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: visible;
+    transition: transform 0.12s, border-color 0.12s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .level-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .level-card.crowned { box-shadow: 0 0 0 2px #ffd036, 0 4px 16px rgba(255,208,54,0.25); border-color: #ffd036; }
+  .level-card.scissored { box-shadow: 0 0 0 2px #38a5ff, 0 4px 16px rgba(56,165,255,0.2); border-color: #38a5ff; }
+  .level-card.crowned.scissored { box-shadow: 0 0 0 2px #ffd036, 0 0 0 4px #38a5ff; }
+
+  .level-meta {
+    padding: 7px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: var(--surface2);
+    border-radius: 11px 11px 0 0;
+    flex-shrink: 0;
+  }
+  .level-idx { font-weight: 700; color: var(--accent2); font-size: 12px; }
+  .size-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+  .size-badge.s  { background: #d3f9e5; color: #1a7a45; }
+  .size-badge.m  { background: #d0e8ff; color: #1a56a0; }
+  .size-badge.l  { background: #fff3cc; color: #8a6200; }
+  .size-badge.xl { background: #ffe0e0; color: #a02020; }
+  .size-badge.xxl{ background: #ede0ff; color: #5a2da0; }
+  .level-dim { margin-left: auto; font-family: 'Courier New', monospace; font-size: 10px; }
+
+  canvas { display: block; image-rendering: pixelated; }
+
+  /* ── Stickers ── */
+  .card-stickers {
+    position: absolute;
+    top: -8px;
+    right: -4px;
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    max-width: 100px;
+    justify-content: flex-end;
+    z-index: 10;
+  }
+  .sticker {
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+    transition: transform 0.1s;
+    user-select: none;
+  }
+  .sticker:hover { transform: scale(1.3); }
+
+
+  /* ── Version flip ── */
+  .version-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    z-index: 6;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .version-indicator:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: scale(1.05); }
+  .canvas-flip {
+    transition: opacity 0.15s;
+  }
+  .canvas-flip.flipping { opacity: 0; }
+
+  /* ── Comment bubble on card ── */
+  .comment-bubble {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    max-width: calc(100% - 12px);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 4px 7px;
+    font-size: 10px;
+    color: #1a2035;
+    line-height: 1.4;
+    pointer-events: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: none;
+    z-index: 5;
+  }
+  .comment-bubble.has-text { display: block; }
+
+  /* ── Chapter stats ── */
+  .ch-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .ch-stat-size {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .ch-s   { background: #d3f9e5; color: #1a7a45; }
+  .ch-m   { background: #d0e8ff; color: #1a56a0; }
+  .ch-l   { background: #fff3cc; color: #8a6200; }
+  .ch-xl  { background: #ffe0e0; color: #a02020; }
+  .ch-xxl { background: #ede0ff; color: #5a2da0; }
+  .ch-stat-flag { font-size: 11px; opacity: 0.85; }
+
+  .type-badge {
+    font-size: 13px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* ── Quick flags in meta ── */
+  .meta-flag {
+    font-size: 13px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: opacity 0.12s, transform 0.1s;
+    user-select: none;
+    line-height: 1;
+  }
+  .meta-flag:hover { opacity: 0.8; transform: scale(1.2); }
+  .meta-flag.active { opacity: 1; }
+
+  /* ── Pencil / comment trigger ── */
+  .comment-trigger {
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.12s;
+    user-select: none;
+    color: var(--muted);
+    padding: 0 2px;
+    line-height: 1;
+  }
+  .comment-trigger:hover { opacity: 1; }
+
+  /* ── Comment popup ── */
+  .comment-popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    z-index: 300;
+    background: #ffffff;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 20px rgba(79,110,247,0.15);
+    min-width: 180px;
+    max-width: 240px;
+  }
+  .comment-popup.open { display: block; }
+  .comment-popup textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: none;
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+    line-height: 1.5;
+    padding: 6px 8px;
+    resize: none;
+    outline: none;
+    min-height: 70px;
+  }
+  .comment-popup textarea::placeholder { color: var(--muted); }
+  .comment-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    margin-left: 3px;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+
+  /* ── Sticker picker ── */
+  .sticker-add-btn {
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.12s;
+    user-select: none;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 0 2px;
+    line-height: 1;
+  }
+  .sticker-add-btn:hover { opacity: 1; }
+
+  .sticker-picker {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 154px;
+    z-index: 300;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .sticker-picker.open { display: flex; }
+  .sticker-option {
+    font-size: 20px;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: background 0.1s;
+    line-height: 1;
+    user-select: none;
+  }
+  .sticker-option:hover { background: var(--surface2); }
+
+  /* ── Snapshot toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #51cf66;
+    color: #0f2010;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s;
+    z-index: 500;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⬡ Gallery</h1>
+
+  <div class="filter-group">
+    <button class="filter-btn active" onclick="setMode('clean', this)">В цвете</button>
+    <button class="filter-btn" onclick="setMode('gems', this)">+ Алмазы</button>
+    <button class="filter-btn" onclick="setMode('bw', this)">Ч/Б</button>
+  </div>
+
+  <div class="jump-group">
+    <input id="chapterInput" class="chapter-select" list="chapterList" placeholder="Глава №" autocomplete="off" onchange="doChapterJump(this.value)" onkeydown="if(event.key==='Enter') doChapterJump(this.value)">
+    <datalist id="chapterList"></datalist>
+  </div>
+
+  <div class="token-group">
+    <input type="password" id="githubToken" class="token-input" placeholder="GitHub токен" autocomplete="off">
+    <button class="token-save-btn" onclick="saveToken(this)">Сохранить</button>
+  </div>
+
+  <button class="sync-btn" id="syncBtn" onclick="syncFromGitHub(this)" title="Загрузить конфиги с GitHub">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M8 1v4l2.5-2L8 1z" fill="currentColor"/>
+    </svg>
+    Синхронизировать
+  </button>
+
+  <button class="snapshot-btn" onclick="copySnapshot(this)" title="Собрать заметки"><svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="4" width="10" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M5 4V3a1 1 0 011-1h5a1 1 0 011 1v8a1 1 0 01-1 1h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg> Собрать заметки
+  </button>
+
+  <label class="upload-btn">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1v9M4 5l4-4 4 4M2 12h12v2H2z" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Загрузить JSON
+    <input type="file" id="fileInput" accept=".json" multiple onchange="loadFiles(event)">
+  </label>
+</header>
+
+<div id="app">
+  <div class="empty-state" id="emptyState">
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <rect x="8" y="8" width="48" height="48" rx="8" stroke="currentColor" stroke-width="2"/>
+      <rect x="16" y="20" width="8" height="8" rx="1" fill="currentColor"/>
+      <rect x="28" y="20" width="8" height="8" rx="1" fill="currentColor"/>
+      <rect x="40" y="20" width="8" height="8" rx="1" fill="currentColor"/>
+      <rect x="16" y="32" width="8" height="8" rx="1" fill="currentColor"/>
+      <rect x="28" y="32" width="8" height="8" rx="1" fill="currentColor"/>
+      <rect x="40" y="32" width="8" height="8" rx="1" fill="currentColor"/>
+    </svg>
+    <p>Загрузите JSON-файл с уровнями</p>
+  </div>
+  <div id="content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PALETTE_COLORS = [
+  '#A4A5A5','#F3DBFB','#FE61A1','#F0392D','#FFBCC6',
+  '#A34255','#C96740','#FF7D13','#FFD1AB','#7E30BC',
+  '#5757B0','#5767F6','#38A5FF','#6EEEFF','#FFD036',
+  '#FFF7A9','#3A855B','#83E04D','#DCFF6F','#373737',
+  '#F3EEE4',
+];
+
+const STICKER_OPTIONS = ['⚠️','✅','❌','🔥','💡','👀','🎯','💬','⭐','🐛','🔒','💎','🎨','📐','🧩'];
+
+let currentMode = 'clean';
+const levelCache = new Map();
+let loadedPacks = []; // [{name, packNum, data}]
+
+function collectVersions(level) {
+  // Returns array [current, prev, prev.prev, ...] newest first
+  const versions = [level];
+  let cur = level;
+  while (cur.previous) {
+    versions.push(cur.previous);
+    cur = cur.previous;
+  }
+  return versions;
+}
+
+// cardData[cardId] = { stickers: [], comment: '' }
+const cardData = {};
+
+function charToInt(c) {
+  if (c >= '0' && c <= '9') return parseInt(c);
+  return c.charCodeAt(0) - 'a'.charCodeAt(0) + 10;
+}
+
+function countOpaque(level) {
+  let n = 0;
+  for (const ch of level.field) if (ch !== '0') n++;
+  return n;
+}
+
+function sizeLabel(n) {
+  if (n <= 250)  return ['S',  's'];
+  if (n <= 500)  return ['M',  'm'];
+  if (n <= 900)  return ['L',  'l'];
+  if (n <= 1200) return ['XL', 'xl'];
+  return ['XXL','xxl'];
+}
+
+// Pack number extracted from filename: pack_0 → 0, pack_tutorial → -1
+function packNumFromName(name) {
+  const m = name.match(/pack_(\d+)/);
+  return m ? parseInt(m[1]) : null;
+}
+
+function chapterGlobalNum(packNum, ci) {
+  // pack_0: chapters 1..10, pack_1: 11..20 etc.
+  // pack_tutorial or unknown → just 1-based local
+  if (packNum === null) return ci;  // tutorial: 0-based
+  return packNum * 10 + ci + 1;
+}
+
+function setMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Use requestAnimationFrame + batch to avoid blocking UI
+  const canvases = Array.from(document.querySelectorAll('canvas[data-level]'));
+  let i = 0;
+  function drawBatch() {
+    const end = Math.min(i + 20, canvases.length);
+    for (; i < end; i++) {
+      const canvas = canvases[i];
+      const vIdx = canvas.dataset.versionIdx || '0';
+      const cacheKey = canvas.dataset.cacheKey + '_' + mode + '_v' + vIdx;
+      if (canvas.dataset.lastMode === mode) continue; // already this mode
+      const cached = levelCache.get(cacheKey);
+      if (cached) {
+        const ctx = canvas.getContext('2d');
+        ctx.putImageData(cached, 0, 0);
+        canvas.dataset.lastMode = mode;
+      } else {
+        const info = JSON.parse(canvas.dataset.level);
+        // Get correct version
+        const vers = collectVersions(info.level);
+        const verLevel = vers[parseInt(vIdx)] || info.level;
+        drawLevel(canvas, verLevel, mode, window.devicePixelRatio || 1);
+        const ctx = canvas.getContext('2d');
+        levelCache.set(cacheKey, ctx.getImageData(0, 0, canvas.width, canvas.height));
+        canvas.dataset.lastMode = mode;
+      }
+    }
+    if (i < canvases.length) requestAnimationFrame(drawBatch);
+  }
+  requestAnimationFrame(drawBatch);
+}
+
+function loadFiles(event) {
+  const files = Array.from(event.target.files);
+  // Sort: pack_tutorial first, then by pack number
+  files.sort((a, b) => {
+    const na = packNumFromName(a.name.replace('.json',''));
+    const nb = packNumFromName(b.name.replace('.json',''));
+    if (na === null && nb === null) return 0;
+    if (na === null) return -1;
+    if (nb === null) return 1;
+    return na - nb;
+  });
+
+  loadedPacks = [];
+  document.getElementById('emptyState').style.display = 'none';
+
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const name = file.name.replace('.json', '');
+        const data = JSON.parse(e.target.result);
+        loadedPacks.push({ name, packNum: packNumFromName(name), data });
+      } catch(err) {
+        console.error('Parse error:', file.name, err);
+      }
+      loaded++;
+      if (loaded === files.length) {
+        // Sort again after loading (preserve file order by pack number)
+        loadedPacks.sort((a, b) => {
+          if (a.packNum === null && b.packNum === null) return 0;
+          if (a.packNum === null) return -1;
+          if (b.packNum === null) return 1;
+          return a.packNum - b.packNum;
+        });
+        renderAll();
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function renderAll() {
+  const container = document.getElementById('content');
+  container.innerHTML = '';
+  loadedPacks.forEach(pack => renderPack(pack, container));
+  populateChapterSelect();
+}
+
+function renderPack(pack, container) {
+  const packDiv = document.createElement('div');
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'pack-name';
+  nameDiv.textContent = pack.name;
+  packDiv.appendChild(nameDiv);
+
+  pack.data.chapters.forEach((chapter, ci) => {
+    if (!chapter.levels || chapter.levels.length === 0) return;
+
+    const globalCh = chapterGlobalNum(pack.packNum, ci);
+    const block = document.createElement('div');
+    block.className = 'chapter-block';
+
+    // Compute chapter stats (pre-init cardData for all levels first)
+    chapter.levels.forEach((lv, li) => {
+      const cid = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+      if (!cardData[cid]) cardData[cid] = { stickers: [], comment: '', crown: false, scissors: false };
+    });
+
+    const header = document.createElement('div');
+    header.className = 'chapter-header';
+    header.dataset.pack = pack.name;
+    header.dataset.ch = globalCh;
+
+    const titleEl = document.createElement('span');
+    titleEl.className = 'chapter-title';
+    titleEl.textContent = 'Глава ' + globalCh;
+    header.appendChild(titleEl);
+
+    const countEl = document.createElement('span');
+    countEl.className = 'chapter-count';
+    countEl.textContent = chapter.levels.length + ' ур.';
+    header.appendChild(countEl);
+
+    const statsEl = document.createElement('span');
+    statsEl.className = 'ch-stats';
+    header.appendChild(statsEl);
+
+    function refreshChapterStats() {
+      const st = { S:0, M:0, L:0, XL:0, XXL:0, crown:0, scissors:0 };
+      chapter.levels.forEach((lv, li) => {
+        const cid = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+        const d = cardData[cid];
+        const [sl] = sizeLabel(countOpaque(lv));
+        st[sl]++;
+        if (d && d.crown) st.crown++;
+        if (d && d.scissors) st.scissors++;
+      });
+      statsEl.innerHTML = ['S','M','L','XL','XXL']
+        .filter(k => st[k] > 0)
+        .map(k => `<span class="ch-stat-size ch-${k.toLowerCase()}">${k}&thinsp;${st[k]}</span>`)
+        .join('')
+        + (st.crown > 0 ? `<span class="ch-stat-flag">👑&thinsp;${st.crown}</span>` : '')
+        + (st.scissors > 0 ? `<span class="ch-stat-flag">✂️&thinsp;${st.scissors}</span>` : '');
+    }
+    refreshChapterStats();
+
+    block.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'levels-grid';
+
+    chapter.levels.forEach((level, li) => {
+      const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+      if (!cardData[cardId]) cardData[cardId] = { stickers: [], comment: '', crown: false, scissors: false };
+      // Auto-crown for special level types
+      if (level.t === 1 || level.t === 2) cardData[cardId].crown = true;
+
+      const opaque = countOpaque(level);
+      const [sLabel, sClass] = sizeLabel(opaque);
+
+      const DISPLAY = 240; // target display size
+      const MIN_CARD_W = 210; // enough for meta icons
+      const PAD = 6;
+      const dpr = window.devicePixelRatio || 1;
+      // Available width for image after padding
+      const availW = Math.max(DISPLAY, MIN_CARD_W) - PAD * 2;
+      const maxDim = Math.max(level.width, level.height);
+      // cssCell: fit into availW × DISPLAY box, integer pixels
+      const cssCell = Math.max(Math.min(
+        Math.floor(availW / level.width),
+        Math.floor(DISPLAY / level.height)
+      ), 2);
+      const cssW = level.width * cssCell;
+      const cssH = level.height * cssCell;
+      const cardW = Math.max(cssW + PAD * 2, MIN_CARD_W);
+      // Physical canvas size for crisp Retina rendering
+      const rawW = cssW * dpr;
+      const rawH = cssH * dpr;
+
+      const card = document.createElement('div');
+      card.className = 'level-card' + (cardData[cardId].crown ? ' crowned' : '') + (cardData[cardId].scissors ? ' scissored' : '');
+      card.dataset.cardId = cardId;
+      card.style.width = cardW + 'px';
+      card.style.minWidth = MIN_CARD_W + 'px';
+
+      // ── Meta bar ──
+      const meta = document.createElement('div');
+      meta.className = 'level-meta';
+
+      const idxEl = document.createElement('span');
+      idxEl.className = 'level-idx';
+      idxEl.textContent = '#' + (li + 1);
+      meta.appendChild(idxEl);
+
+      const badge = document.createElement('span');
+      badge.className = 'size-badge ' + sClass;
+      badge.textContent = sLabel;
+      meta.appendChild(badge);
+
+      // Type badge
+      if (level.t === 1) {
+        const tb = document.createElement('span');
+        tb.className = 'type-badge';
+        tb.textContent = '🎬';
+        tb.title = 'Rewarded';
+        meta.appendChild(tb);
+      } else if (level.t === 2) {
+        const tb = document.createElement('span');
+        tb.className = 'type-badge';
+        tb.textContent = '🪙';
+        tb.title = 'Coins';
+        meta.appendChild(tb);
+      }
+
+      // Crown
+      const crown = document.createElement('span');
+      crown.className = 'meta-flag' + (cardData[cardId].crown ? ' active' : '');
+      crown.textContent = '👑';
+      crown.title = 'Избранное';
+      crown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cardData[cardId].crown = !cardData[cardId].crown;
+        crown.classList.toggle('active', cardData[cardId].crown);
+        card.classList.toggle('crowned', cardData[cardId].crown);
+        refreshChapterStats();
+      });
+      meta.appendChild(crown);
+
+      // Scissors
+      const scissors = document.createElement('span');
+      scissors.className = 'meta-flag' + (cardData[cardId].scissors ? ' active' : '');
+      scissors.textContent = '✂️';
+      scissors.title = 'На удаление';
+      scissors.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cardData[cardId].scissors = !cardData[cardId].scissors;
+        scissors.classList.toggle('active', cardData[cardId].scissors);
+        card.classList.toggle('scissored', cardData[cardId].scissors);
+        refreshChapterStats();
+      });
+      meta.appendChild(scissors);
+
+      // Pencil (always visible)
+      const commentDot = document.createElement('span');
+      commentDot.className = 'comment-dot';
+      commentDot.style.display = cardData[cardId].comment ? 'inline-block' : 'none';
+
+      const pencil = document.createElement('span');
+      pencil.className = 'comment-trigger';
+      pencil.textContent = '✏️';
+      pencil.title = 'Комментарий';
+      meta.appendChild(pencil);
+      meta.appendChild(commentDot);
+
+      // Dim
+      const dimEl = document.createElement('span');
+      dimEl.className = 'level-dim';
+      const opaqueCount = countOpaque(level);
+      let misplacedCount = 0;
+      for (let i = 0; i < level.field.length; i++) {
+        if (level.field[i] !== '0' && level.gems[i] !== level.field[i]) misplacedCount++;
+      }
+      const solvePercent = opaqueCount > 0 ? Math.round((misplacedCount / opaqueCount) * 100) : 0;
+      dimEl.innerHTML = opaqueCount + ' px&thinsp;<span style="color:var(--accent2);font-size:10px;" title="% уровня для решения">◇ ' + solvePercent + '%</span>';
+      meta.appendChild(dimEl);
+
+      card.appendChild(meta);
+
+      // ── Canvas wrapper (fixed size, overflow hidden) ──
+      // Outer: position:relative for absolute overlays, clips to rounded corners
+      const canvasWrap = document.createElement('div');
+      canvasWrap.style.cssText = `position:relative;width:${cardW}px;border-radius:0 0 10px 10px;overflow:hidden;flex-shrink:0;padding:${PAD}px;`;
+
+      // Inner: flex centering for canvas
+      const canvasCenter = document.createElement('div');
+      canvasCenter.style.cssText = `position:relative;display:flex;align-items:center;justify-content:center;width:${cardW - PAD*2}px;min-height:${cssH}px;`;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = rawW;
+      canvas.height = rawH;
+      // CSS size is cssW x cssH — browser does no scaling, just dpr mapping
+      canvas.style.cssText = `display:block;image-rendering:pixelated;width:${cssW}px;height:${cssH}px;`;
+      canvas.dataset.level = JSON.stringify({ level });
+      canvas.dataset.cacheKey = cardId;
+      canvas.dataset.versionIdx = '0';
+      canvas.dataset.lastMode = currentMode;
+      drawLevel(canvas, level, currentMode, dpr);
+      // Cache the initial render
+      const initCtx = canvas.getContext('2d');
+      levelCache.set(cardId + '_' + currentMode + '_v0', initCtx.getImageData(0, 0, canvas.width, canvas.height));
+      canvasCenter.appendChild(canvas);
+      canvasWrap.appendChild(canvasCenter);
+
+      // Stickers overlay — absolute on top of canvasWrap
+      const stickersEl = document.createElement('div');
+      stickersEl.className = 'card-stickers';
+      stickersEl.dataset.cardId = cardId;
+      renderStickers(stickersEl, cardId);
+      canvasWrap.appendChild(stickersEl);
+
+      // Comment bubble — absolute on top of canvasWrap
+      const commentBubble = document.createElement('div');
+      commentBubble.className = 'comment-bubble';
+      updateCommentBubble(commentBubble, cardData[cardId].comment);
+      canvasWrap.appendChild(commentBubble);
+
+      card.appendChild(canvasWrap);
+
+      // Version flip if level has previous versions
+      const versions = collectVersions(level);
+      if (versions.length > 1) {
+        let vIdx = 0;
+
+        // Pre-compute cell size for each version, constrained to same fixed display area
+        const vCells = versions.map(v => Math.max(Math.min(
+          Math.floor((cardW - PAD * 2) / v.width),
+          Math.floor(DISPLAY / v.height)
+        ), 2));
+        const vCssWs = versions.map((v, i) => v.width * vCells[i]);
+        const vCssHs = versions.map((v, i) => v.height * vCells[i]);
+
+        // Fix canvasCenter to max height across all versions — never changes size
+        const maxCssH = Math.max(...vCssHs);
+        const maxCssW = Math.max(...vCssWs);
+        canvasCenter.style.minHeight = maxCssH + 'px';
+        canvasCenter.style.width = Math.max(cardW - PAD * 2, maxCssW) + 'px';
+
+        const verEl = document.createElement('div');
+        verEl.className = 'version-indicator';
+        verEl.title = 'Кликни чтобы переключить версию';
+        const updateVerLabel = () => {
+          verEl.innerHTML = `◀ ${versions.length - vIdx}&thinsp;/&thinsp;${versions.length}`;
+        };
+        updateVerLabel();
+
+        verEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          canvas.classList.add('flipping');
+          setTimeout(() => {
+            vIdx = (vIdx + 1) % versions.length;
+            canvas.dataset.versionIdx = String(vIdx);
+            canvas.dataset.lastMode = '';
+            const v = versions[vIdx];
+            // Resize canvas buffer only, not the card layout
+            canvas.width = vCssWs[vIdx] * dpr;
+            canvas.height = vCssHs[vIdx] * dpr;
+            canvas.style.width = vCssWs[vIdx] + 'px';
+            canvas.style.height = vCssHs[vIdx] + 'px';
+            drawLevel(canvas, v, currentMode, dpr);
+            const vCtx = canvas.getContext('2d');
+            levelCache.set(cardId + '_' + currentMode + '_v' + vIdx, vCtx.getImageData(0, 0, canvas.width, canvas.height));
+            updateVerLabel();
+            canvas.classList.remove('flipping');
+          }, 150);
+        });
+
+        canvasCenter.appendChild(verEl);
+      }
+
+      // ── Comment popup (attached to card, not meta) ──
+      const commentPopup = document.createElement('div');
+      commentPopup.className = 'comment-popup';
+
+      // Quick phrases
+      const quickPhrases = ['заменить на', 'изменить размер на'];
+      const phrasesRow = document.createElement('div');
+      phrasesRow.style.cssText = 'display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;';
+      quickPhrases.forEach(phrase => {
+        const btn = document.createElement('button');
+        btn.textContent = phrase;
+        btn.style.cssText = 'padding:3px 8px;font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-family:inherit;';
+        btn.addEventListener('mouseenter', () => btn.style.borderColor = 'var(--accent2)');
+        btn.addEventListener('mouseleave', () => btn.style.borderColor = 'var(--border)');
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const v = commentTA.value;
+          const ins = v ? v + ' ' + phrase + ' ' : phrase + ' ';
+          commentTA.value = ins;
+          cardData[cardId].comment = ins;
+          commentDot.style.display = 'inline-block';
+          updateCommentBubble(commentBubble, ins);
+          commentTA.focus();
+          commentTA.setSelectionRange(ins.length, ins.length);
+        });
+        phrasesRow.appendChild(btn);
+      });
+      commentPopup.appendChild(phrasesRow);
+
+      const commentTA = document.createElement('textarea');
+      commentTA.placeholder = 'Комментарий...';
+      commentTA.value = cardData[cardId].comment;
+      commentTA.addEventListener('input', () => {
+        cardData[cardId].comment = commentTA.value;
+        commentDot.style.display = commentTA.value ? 'inline-block' : 'none';
+        updateCommentBubble(commentBubble, commentTA.value);
+      });
+      commentTA.addEventListener('click', e => e.stopPropagation());
+      commentPopup.appendChild(commentTA);
+      card.appendChild(commentPopup);
+
+      function openCommentPopup(e) {
+        e.stopPropagation();
+        document.querySelectorAll('.comment-popup.open, .sticker-picker.open').forEach(p => {
+          if (p !== commentPopup) p.classList.remove('open');
+        });
+        commentPopup.classList.toggle('open');
+        if (commentPopup.classList.contains('open')) commentTA.focus();
+      }
+      pencil.addEventListener('click', openCommentPopup);
+      canvas.addEventListener('click', openCommentPopup);
+
+      // ── Sticker picker ──
+      const picker = document.createElement('div');
+      picker.className = 'sticker-picker';
+      STICKER_OPTIONS.forEach(emoji => {
+        const opt = document.createElement('span');
+        opt.className = 'sticker-option';
+        opt.textContent = emoji;
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          cardData[cardId].stickers.push(emoji);
+          renderStickers(stickersEl, cardId);
+          picker.classList.remove('open');
+        });
+        picker.appendChild(opt);
+      });
+      card.appendChild(picker);
+
+
+
+      grid.appendChild(card);
+    });
+
+    block.appendChild(grid);
+    refreshChapterStats(); // re-run after all cards rendered with auto-crowns
+    packDiv.appendChild(block);
+  });
+
+  container.appendChild(packDiv);
+}
+
+function updateCommentBubble(el, text) {
+  const t = (text || '').trim();
+  if (t) {
+    el.textContent = t.length > 60 ? t.slice(0, 57) + '…' : t;
+    el.classList.add('has-text');
+  } else {
+    el.textContent = '';
+    el.classList.remove('has-text');
+  }
+}
+
+function renderStickers(el, cardId) {
+  el.innerHTML = '';
+  cardData[cardId].stickers.forEach((emoji, i) => {
+    const s = document.createElement('span');
+    s.className = 'sticker';
+    s.textContent = emoji;
+    s.title = 'Клик — удалить';
+    s.addEventListener('click', () => {
+      cardData[cardId].stickers.splice(i, 1);
+      renderStickers(el, cardId);
+    });
+    el.appendChild(s);
+  });
+}
+
+// Close pickers on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.sticker-picker.open').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.comment-popup.open').forEach(p => p.classList.remove('open'));
+});
+
+
+// ── GitHub Token ─────────────────────────────────────────────────────────
+function loadToken() {
+  const t = localStorage.getItem('gh_token') || '';
+  const inp = document.getElementById('githubToken');
+  if (inp && t) inp.value = t;
+  return t;
+}
+
+function saveToken(btn) {
+  const t = document.getElementById('githubToken').value.trim();
+  if (t) {
+    localStorage.setItem('gh_token', t);
+    btn.textContent = '✓';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = 'Сохранить'; btn.classList.remove('saved'); }, 2000);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadToken);
+
+// ── GitHub Sync ───────────────────────────────────────────────────────────
+const GITHUB_API = 'https://api.github.com/repos/EvrikaGames/DiamondPuzzle/contents/DiamondPuzzleUnity/Assets/Game/Cfg/Resources/Configs/Levels';
+const GITHUB_RAW = 'https://raw.githubusercontent.com/EvrikaGames/DiamondPuzzle/main/DiamondPuzzleUnity/Assets/Game/Cfg/Resources/Configs/Levels';
+
+async function syncFromGitHub(btn) {
+  btn.classList.add('syncing');
+  btn.querySelector('svg').style.transformOrigin = 'center';
+  showToast('Подключаемся к GitHub...');
+
+  const token = loadToken();
+  if (!token) { showToast('Введите и сохраните GitHub токен'); btn.classList.remove('syncing'); return; }
+  const headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' };
+
+  try {
+    // 1. Get file list dynamically from GitHub API
+    const res = await fetch(GITHUB_API, { headers });
+    if (!res.ok) throw new Error('GitHub API: ' + res.status + (res.status === 401 ? ' — неверный токен' : ''));
+    const files = await res.json();
+
+    // 2. Filter pack JSON files
+    const packFiles = files.filter(f =>
+      f.type === 'file' && f.name.endsWith('.json') &&
+      (f.name.startsWith('pack_') || f.name === 'pack.json')
+    );
+    if (packFiles.length === 0) throw new Error('JSON файлы не найдены');
+    showToast(`Найдено ${packFiles.length} файлов, загружаем...`);
+
+    // 3. Fetch each file with token
+    const results = await Promise.all(packFiles.map(async f => {
+      const r = await fetch(GITHUB_RAW + '/' + f.name, { headers });
+      if (!r.ok) throw new Error('Не удалось загрузить ' + f.name);
+      const data = await r.json();
+      return { name: f.name.replace('.json', ''), packNum: packNumFromName(f.name.replace('.json','')), data };
+    }));
+
+    // 4. Sort and render
+    loadedPacks = results.sort((a, b) => {
+      if (a.packNum === null && b.packNum === null) return 0;
+      if (a.packNum === null) return -1;
+      if (b.packNum === null) return 1;
+      return a.packNum - b.packNum;
+    });
+
+    document.getElementById('emptyState').style.display = 'none';
+    renderAll();
+
+    btn.classList.remove('syncing');
+    btn.classList.add('done');
+    showToast(`✓ Загружено ${loadedPacks.length} паков`);
+    setTimeout(() => btn.classList.remove('done'), 2000);
+
+  } catch(e) {
+    btn.classList.remove('syncing');
+    showToast('Ошибка: ' + e.message);
+    console.error(e);
+  }
+}
+
+// ── Snapshot ──────────────────────────────────────────────────────────────
+function populateChapterSelect() {
+  const dl = document.getElementById('chapterList');
+  if (!dl) return;
+  dl.innerHTML = '';
+  const headers = document.querySelectorAll('.chapter-header');
+  headers.forEach(h => {
+    const title = h.querySelector('.chapter-title');
+    if (!title) return;
+    const num = title.textContent.replace('Глава ', '').trim();
+    const opt = document.createElement('option');
+    opt.value = num;
+    dl.appendChild(opt);
+  });
+}
+
+function scrollToChapter(num) {
+  const headers = document.querySelectorAll('.chapter-header');
+  for (const h of headers) {
+    const title = h.querySelector('.chapter-title');
+    if (title && parseInt(title.textContent.replace('Глава ', '')) === parseInt(num)) {
+      const headerH = document.querySelector('header')?.offsetHeight || 60;
+      const top = h.getBoundingClientRect().top + window.scrollY - headerH - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+      h.style.transition = 'background 0.3s';
+      h.style.background = '#dbeafe';
+      setTimeout(() => { h.style.background = ''; h.style.transition = ''; }, 1200);
+      return true;
+    }
+  }
+  return false;
+}
+
+function doChapterJump(val) {
+  val = (val || '').trim();
+  if (!val) return;
+  if (scrollToChapter(val)) {
+    setTimeout(() => { document.getElementById('chapterInput').value = ''; }, 600);
+  }
+}
+
+function copySnapshot(btn) {
+  const lines = [];
+
+  loadedPacks.forEach(pack => {
+    let packHasContent = false;
+    const packLines = [pack.name];
+
+    pack.data.chapters.forEach((chapter, ci) => {
+      if (!chapter.levels || chapter.levels.length === 0) return;
+      const globalCh = chapterGlobalNum(pack.packNum, ci);
+
+      chapter.levels.forEach((level, li) => {
+        const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+        const d = cardData[cardId];
+        if (!d) return;
+        const hasStickers = d.stickers.length > 0;
+        const hasComment = d.comment.trim().length > 0;
+        if (!hasStickers && !hasComment) return;
+
+        const flags = (d.crown ? ' 👑' : '') + (d.scissors ? ' ✂️' : '');
+        let line = `— Глава ${globalCh}, Уровень ${li + 1}${flags}`;
+        if (hasStickers) line += '  ' + d.stickers.join('');
+        packLines.push(line);
+        if (hasComment) {
+          packLines.push('');
+          packLines.push('* ' + d.comment.trim().replace(/\n/g, '\n  '));
+          packLines.push('');
+        }
+        packHasContent = true;
+      });
+    });
+
+    if (packHasContent) {
+      lines.push(...packLines, '');
+    }
+  });
+
+  if (lines.length === 0) {
+    lines.push('Нет комментариев и стикеров.');
+  }
+
+  const text = lines.join('\n');
+  function doShow() {
+    showToast('Снапшот скопирован ✓');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 2000);
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(doShow).catch(() => fallbackCopy(text, doShow));
+  } else {
+    fallbackCopy(text, doShow);
+  }
+}
+
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); cb(); }
+  catch(e) { showToast('Не удалось скопировать :('); }
+  document.body.removeChild(ta);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Drawing ───────────────────────────────────────────────────────────────
+function drawLevel(canvas, level, mode, dpr) {
+  dpr = dpr || 1;
+  const ctx = canvas.getContext('2d');
+  // cell size in physical pixels — always integer
+  const cw = Math.round(canvas.width / level.width);
+  const ch = Math.round(canvas.height / level.height);
+  const W = cw * level.width;
+  const H = ch * level.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Fill cells with exact integer rects — zero subpixel bleed
+  for (let y = 0; y < level.height; y++) {
+    for (let x = 0; x < level.width; x++) {
+      const idx = y * level.width + x;
+      const fv = charToInt(level.field[idx]);
+      if (fv === 0) continue;
+      const colorId = level.palette[fv - 1];
+      let color = PALETTE_COLORS[colorId] || '#888';
+      if (mode === 'bw') color = toLuma(color);
+      ctx.fillStyle = color;
+      ctx.fillRect(x * cw, y * ch, cw, ch);
+    }
+  }
+
+  if (mode === 'gems') {
+    for (let y = 0; y < level.height; y++) {
+      for (let x = 0; x < level.width; x++) {
+        const idx = y * level.width + x;
+        const gv = charToInt(level.gems[idx]);
+        if (gv === 0) continue;
+        const colorId = level.palette[gv - 1];
+        const gemColor = PALETTE_COLORS[colorId] || '#fff';
+        const isCorrect = level.gems[idx] === level.field[idx];
+        const cx = x * cw + cw / 2, cy = y * ch + ch / 2;
+        const r = Math.min(cw, ch) * 0.32;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = gemColor;
+        ctx.fill();
+        ctx.strokeStyle = isCorrect ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = Math.max(dpr, r * 0.3);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  // Grid: crisp lines on all 4 sides of every opaque cell
+  if (cw / dpr >= 3) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = dpr;
+    // Collect unique horizontal and vertical segments
+    const hLines = new Set(); // "x1,x2,y"
+    const vLines = new Set(); // "x,y1,y2"
+    for (let y = 0; y < level.height; y++) {
+      for (let x = 0; x < level.width; x++) {
+        if (level.field[y * level.width + x] === '0') continue;
+        hLines.add(x + ',' + (x+1) + ',' + y);       // top
+        hLines.add(x + ',' + (x+1) + ',' + (y+1));   // bottom
+        vLines.add(x + ',' + y + ',' + (y+1));        // left
+        vLines.add((x+1) + ',' + y + ',' + (y+1));    // right
+      }
+    }
+    hLines.forEach(k => {
+      const [x1, x2, y] = k.split(',').map(Number);
+      const py = Math.round(y * ch);
+      ctx.beginPath();
+      ctx.moveTo(Math.round(x1 * cw), py);
+      ctx.lineTo(Math.round(x2 * cw), py);
+      ctx.stroke();
+    });
+    vLines.forEach(k => {
+      const [x, y1, y2] = k.split(',').map(Number);
+      const px = Math.round(x * cw);
+      ctx.beginPath();
+      ctx.moveTo(px, Math.round(y1 * ch));
+      ctx.lineTo(px, Math.round(y2 * ch));
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+}
+
+function toLuma(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  const l = Math.round(0.299*r + 0.587*g + 0.114*b).toString(16).padStart(2,'0');
+  return `#${l}${l}${l}`;
+}
+</script>
+</body>
+</html>
