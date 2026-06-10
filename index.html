@@ -750,8 +750,11 @@ function renderPack(pack, container) {
     chapter.levels.forEach((level, li) => {
       const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
       if (!cardData[cardId]) cardData[cardId] = { stickers: [], comment: '', crown: false, scissors: false };
-      // Auto-crown for special level types
-      if (level.t === 1 || level.t === 2) cardData[cardId].crown = true;
+      // Auto-crown for special level types (t:1 = rewarded, t:2 = coins)
+      if ((level.t === 1 || level.t === 2) && !cardData[cardId]._crownSet) {
+        cardData[cardId].crown = true;
+        cardData[cardId]._crownSet = true;
+      }
 
       const opaque = countOpaque(level);
       const [sLabel, sClass] = sizeLabel(opaque);
@@ -795,18 +798,12 @@ function renderPack(pack, container) {
       badge.textContent = sLabel;
       meta.appendChild(badge);
 
-      // Type badge
-      if (level.t === 1) {
+      // Type badge (t:1 = rewarded 🎬, t:2 = coins 🪙)
+      if (level.t && level.t !== 0) {
         const tb = document.createElement('span');
         tb.className = 'type-badge';
-        tb.textContent = '🎬';
-        tb.title = 'Rewarded';
-        meta.appendChild(tb);
-      } else if (level.t === 2) {
-        const tb = document.createElement('span');
-        tb.className = 'type-badge';
-        tb.textContent = '🪙';
-        tb.title = 'Coins';
+        tb.textContent = level.t === 1 ? '🎬' : level.t === 2 ? '🪙' : '★';
+        tb.title = level.t === 1 ? 'Rewarded' : level.t === 2 ? 'Coins' : 'Special';
         meta.appendChild(tb);
       }
 
