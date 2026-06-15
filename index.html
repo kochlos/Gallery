@@ -2,8 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAABsUlEQVR4nNWWP0ucQRDGf7N/zjNgPkG0MKTPGZCEMxAIIiGpJFUaIcWh2PktUlmKFinTmu4qQwoNEgKCXQKp8gESiI3e7o7F653vneZ8T07fy1MNu8/MMzM77K7QRjiYZXjwta8KgBli0Evh4sEjFYB6w2eGKCqIAr1GcUL6NhtdFMUplqwYCZKJCgJk1G6jOCE4RK3eQotGSCC1yQaMSiro5grypmo7Bgd8aDwD1FJvFHK8+TG9alvu1T7lV95sfQaE+GXjOfB0WaL0i1B2Ber8+5W9/MrbjfowBUKrNc7vgSL2oOwWXcSrH0uA0WpB/o1XIJ1noL7cb9z2t9YUAY4mnwA+Viu/XnZ2TXKPV2Oev7up2S07Mmfwd3IOit4/eZRdQQih6gTAVwmtdhHmxKZKF1EcZ2cQsAMIiGiz+RGYeHcfOfeMmlh8kONps7mdmfMvXucjlN0i7/3E+kMgnz5gxbD9E/izdmg1cSHxDsqrYH/hO3Aid/oP5931GVFUEkwPJoBaoKLH/RM0GoD07zgj9Ku4JpwkDxhaarq7oQNo23jc4+6iS4wB5zfo//q7PgWakIiPfhG8egAAAABJRU5ErkJggg==">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Level Viewer</title>
+<title>Gallery</title>
 <style>
   :root {
     --bg: #f2f7fc;
@@ -28,30 +29,31 @@
   header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 14px 28px;
+    gap: 10px;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border);
     background: #ffffff;
     box-shadow: 0 1px 8px rgba(79,110,247,0.07);
     position: sticky;
     top: 0;
     z-index: 200;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   header h1 {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     letter-spacing: 0.03em;
     color: var(--accent2);
-    flex: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .upload-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 16px;
+    padding: 5px 10px;
     background: var(--accent);
     color: #fff;
     border: none;
@@ -69,21 +71,21 @@
   .jump-group { display: flex; gap: 4px; align-items: center; }
 
   .chapter-select {
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
-    font-size: 12px;
+    font-size: 11px;
     font-family: inherit;
     outline: none;
     cursor: pointer;
-    max-width: 160px;
+    max-width: 110px;
     transition: border-color 0.15s;
   }
   .chapter-select:focus { border-color: var(--accent); }
   .filter-btn {
-    padding: 6px 12px;
+    padding: 5px 9px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -100,8 +102,8 @@
   .snapshot-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
+    gap: 5px;
+    padding: 5px 10px;
     background: transparent;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -114,39 +116,61 @@
   .snapshot-btn:hover { border-color: var(--accent2); color: var(--accent2); }
   .snapshot-btn.copied { border-color: #51cf66; color: #51cf66; }
 
-  .token-group { display: flex; align-items: center; gap: 6px; }
+  .token-group { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
   .token-input {
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
-    font-size: 12px;
+    font-size: 11px;
     font-family: monospace;
     outline: none;
-    width: 160px;
+    width: 130px;
     transition: border-color 0.15s;
   }
   .token-input:focus { border-color: var(--accent); }
   .token-input::placeholder { color: var(--muted); font-family: inherit; }
   .token-save-btn {
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     transition: all 0.12s;
+    flex-shrink: 0;
   }
   .token-save-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .token-save-btn.saved { border-color: #51cf66; color: #51cf66; }
+  .token-status {
+    font-size: 14px;
+    color: #51cf66;
+    cursor: default;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .token-status[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2035;
+    color: #fff;
+    font-size: 11px;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border-radius: 5px;
+    pointer-events: none;
+    z-index: 999;
+  }
 
   .sync-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
+    gap: 5px;
+    padding: 5px 10px;
     background: transparent;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -272,11 +296,181 @@
   .sticker:hover { transform: scale(1.3); }
 
 
+  /* ── Crown type picker ── */
+  .crown-picker {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    display: none;
+    gap: 4px;
+    z-index: 300;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    white-space: nowrap;
+  }
+  .crown-picker.open { display: flex; }
+  .crown-option {
+    font-size: 18px;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 6px;
+    transition: background 0.1s;
+    line-height: 1;
+    user-select: none;
+  }
+  .crown-option:hover { background: var(--surface2); }
+
+
+  /* ── Push diff modal ── */
+  .diff-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .diff-overlay.open { display: flex; }
+  .diff-modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    width: 460px;
+    max-width: 90vw;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+  }
+  .diff-modal h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .diff-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .diff-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .diff-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+  }
+  .diff-item:last-child { border-bottom: none; }
+  .diff-pack { font-weight: 600; color: var(--muted); font-size: 11px; min-width: 60px; }
+  .diff-from { color: var(--muted); }
+  .diff-arrow { color: var(--muted); }
+  .diff-to { font-weight: 600; color: var(--accent); }
+  .diff-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .diff-cancel {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .diff-cancel:hover { border-color: var(--text); color: var(--text); }
+  .diff-confirm {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .diff-confirm:hover { background: var(--accent2); }
+
+  /* ── Changelog ── */
+  .changelog-panel {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    min-width: 260px;
+    max-width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 400;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    display: none;
+  }
+  .changelog-panel.open { display: block; }
+  .changelog-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .changelog-close { cursor: pointer; color: var(--muted); font-size: 14px; }
+  .changelog-item {
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .changelog-item:hover { color: var(--accent); }
+  .changelog-item:last-child { border-bottom: none; }
+  .changelog-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .badge-new { background: #d3f9e5; color: #1a7a45; }
+  .badge-changed { background: #d0e8ff; color: #1a56a0; }
+  .badge-pack { background: #ede0ff; color: #5a2da0; }
+
+  /* ── Parts overlay ── */
+  .parts-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 0 0 10px 10px;
+  }
+  .parts-overlay.visible { opacity: 1; }
+
   /* ── Version flip ── */
   .version-indicator {
     position: absolute;
     bottom: 6px;
     left: 8px;
+    z-index: 5;
     background: rgba(255,255,255,0.88);
     backdrop-filter: blur(4px);
     border: 1px solid var(--border);
@@ -379,7 +573,7 @@
     position: absolute;
     bottom: calc(100% + 6px);
     left: 0;
-    z-index: 300;
+    z-index: 600;
     background: #ffffff;
     border: 1px solid var(--accent);
     border-radius: 10px;
@@ -456,6 +650,65 @@
   }
   .sticker-option:hover { background: var(--surface2); }
 
+  .help-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Help modal ── */
+  .help-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-overlay.open { display: flex; }
+  .help-modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px;
+    width: 580px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  }
+  .help-modal h2 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+  .help-section { margin-bottom: 18px; }
+  .help-section h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+  .help-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--surface2); font-size: 12px; }
+  .help-row:last-child { border-bottom: none; }
+  .help-icon { font-size: 15px; min-width: 48px; white-space: nowrap; flex-shrink: 0; align-self: center; }
+  .help-desc { color: var(--text); line-height: 1.5; flex: 1; align-self: center; }
+  .help-close {
+    display: block;
+    margin: 16px auto 0;
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .help-close:hover { border-color: var(--accent); color: var(--accent); }
+
   /* ── Snapshot toast ── */
   .toast {
     position: fixed;
@@ -479,7 +732,7 @@
 <body>
 
 <header>
-  <h1>⬡ Gallery</h1>
+  <h1>Gallery <span id="totalLevels" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:4px;"></span></h1>
 
   <div class="filter-group">
     <button class="filter-btn active" onclick="setMode('clean', this)">В цвете</button>
@@ -487,14 +740,15 @@
     <button class="filter-btn" onclick="setMode('bw', this)">Ч/Б</button>
   </div>
 
-  <div class="jump-group">
-    <input id="chapterInput" class="chapter-select" list="chapterList" placeholder="Глава №" autocomplete="off" onchange="doChapterJump(this.value)" onkeydown="if(event.key==='Enter') doChapterJump(this.value)">
-    <datalist id="chapterList"></datalist>
+  <div class="jump-group" style="flex-shrink:0;">
+    <input id="chapterInput" class="chapter-select" placeholder="Глава №" autocomplete="off" readonly
+      onclick="toggleChapterDropdown(event)" onkeydown="if(event.key==='Enter'){doChapterJump(this.value);}" style="cursor:pointer;">
   </div>
 
   <div class="token-group">
-    <input type="password" id="githubToken" class="token-input" placeholder="GitHub токен" autocomplete="off">
-    <button class="token-save-btn" onclick="saveToken(this)">Сохранить</button>
+    <input type="password" id="githubToken" class="token-input" placeholder="GitHub токен" autocomplete="off" oninput="onTokenInput()">
+    <button class="token-save-btn" id="tokenSaveBtn" onclick="saveToken(this)" style="display:none">Сохранить</button>
+    <span class="token-status" id="tokenStatus"></span>
   </div>
 
   <button class="sync-btn" id="syncBtn" onclick="syncFromGitHub(this)" title="Загрузить конфиги с GitHub">
@@ -503,6 +757,14 @@
       <path d="M8 1v4l2.5-2L8 1z" fill="currentColor"/>
     </svg>
     Синхронизировать
+  </button>
+
+  <button class="sync-btn" id="pushBtn" onclick="pushChanges(this)" title="Отправить изменения в GitHub" style="display:none">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M8 11V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    Отправить изменения
   </button>
 
   <button class="snapshot-btn" onclick="copySnapshot(this)" title="Собрать заметки"><svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -518,6 +780,8 @@
     Загрузить JSON
     <input type="file" id="fileInput" accept=".json" multiple onchange="loadFiles(event)">
   </label>
+
+  <button class="help-btn" onclick="document.getElementById('helpModal').classList.add('open')" title="Справка">?</button>
 </header>
 
 <div id="app">
@@ -536,7 +800,58 @@
   <div id="content"></div>
 </div>
 
+<div class="help-overlay" id="helpModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="help-modal">
+    <h2>Gallery — справка</h2>
+
+    <div class="help-section">
+      <h3>Навигация</h3>
+      <div class="help-row"><span class="help-icon">📂</span><span class="help-desc"><b>Загрузить JSON</b> — загрузить конфиги локально с компьютера</span></div>
+      <div class="help-row"><span class="help-icon">🔄</span><span class="help-desc"><b>Синхронизировать</b> — подтянуть актуальные паки с GitHub (нужен токен)</span></div>
+    </div>
+
+    <div class="help-section">
+      <h3>Экспорт и изменения</h3>
+      <div class="help-row"><span class="help-icon">📋</span><span class="help-desc"><b>Собрать заметки</b> — копирует все комментарии в буфер</span></div>
+      <div class="help-row"><span class="help-icon">⬆️</span><span class="help-desc"><b>Отправить изменения</b> — активна только если есть изменения поля <code>t</code>. Показывает список изменений и отправляет коммит на GitHub</span></div>
+    </div>
+
+    <div class="help-section">
+      <h3>Отображение</h3>
+      <div class="help-row"><span class="help-icon">🎨</span><span class="help-desc"><b>В цвете</b> — стандартное отображение уровня</span></div>
+      <div class="help-row"><span class="help-icon">💎</span><span class="help-desc"><b>+ Алмазы</b> — поверх уровня отображаются gems (текущая расстановка)</span></div>
+      <div class="help-row"><span class="help-icon">⬜</span><span class="help-desc"><b>Ч/Б</b> — чёрно-белая версия уровня</span></div>
+    </div>
+
+    <div class="help-section">
+      <h3>Индикаторы</h3>
+      <div class="help-row"><span class="help-icon">👑🎬</span><span class="help-desc">Rewarded (t=1) — премиум уровень за Rewarded</span></div>
+      <div class="help-row"><span class="help-icon">👑🪙</span><span class="help-desc">Coins (t=2) — премиум уровень за Coins</span></div>
+      <div class="help-row"><span class="help-icon">✂️ N</span><span class="help-desc"><b>Разделённый уровень</b> — отображается только у уровней с заполненным полем <code>parts</code>. Клик показывает/скрывает маску зон</span></div>
+      <div class="help-row"><span class="help-icon">✏️</span><span class="help-desc"><b>Комментарий</b> — открывает попап с текстом и быстрыми фразами</span></div>
+      <div class="help-row"><span class="help-icon">◀ 2/2</span><span class="help-desc"><b>Версии</b> — отображается у уровней с полем <code>previous</code>. Клик циклично переключает версии картинки</span></div>
+      <div class="help-row"><span class="help-icon">S–XXL</span><span class="help-desc">Размер уровня по кол-ву непрозрачных блоков: S ≤250, M ≤500, L ≤900, XL ≤1200, XXL 1201+</span></div>
+      <div class="help-row"><span class="help-icon">◇ 94%</span><span class="help-desc">Процент gems не на своих местах</span></div>
+    </div>
+
+    <button class="help-close" onclick="document.getElementById('helpModal').classList.remove('open')">Закрыть</button>
+  </div>
+</div>
+
+<div class="diff-overlay" id="diffOverlay">
+  <div class="diff-modal">
+    <h2>Изменения для отправки</h2>
+    <div class="diff-subtitle" id="diffSubtitle"></div>
+    <div class="diff-list" id="diffList"></div>
+    <div class="diff-actions">
+      <button class="diff-cancel" onclick="document.getElementById('diffOverlay').classList.remove('open')">Отмена</button>
+      <button class="diff-confirm" id="diffConfirm" onclick="confirmPush()">Отправить</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
+<div id="chapterDropdown" style="display:none;position:fixed;min-width:130px;max-height:280px;overflow-y:auto;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;"></div>
+<div class="changelog-panel" id="changelogPanel"><div class="changelog-title">Изменения после синхронизации <span class="changelog-close" onclick="document.getElementById('changelogPanel').classList.remove('open')">✕</span></div><div id="changelogList"></div></div>
 
 <script>
 const PALETTE_COLORS = [
@@ -552,6 +867,7 @@ const STICKER_OPTIONS = ['⚠️','✅','❌','🔥','💡','👀','🎯','💬'
 let currentMode = 'clean';
 const levelCache = new Map();
 let loadedPacks = []; // [{name, packNum, data}]
+let originalPacks = []; // snapshot from last sync
 
 function collectVersions(level) {
   // Returns array [current, prev, prev.prev, ...] newest first
@@ -681,6 +997,9 @@ function renderAll() {
   container.innerHTML = '';
   loadedPacks.forEach(pack => renderPack(pack, container));
   populateChapterSelect();
+  const total = loadedPacks.reduce((s,p) => s + p.data.chapters.reduce((cs,ch) => cs + (ch.levels ? ch.levels.length : 0), 0), 0);
+  const totalEl = document.getElementById('totalLevels');
+  if (totalEl) totalEl.textContent = total + ' уровней';
 }
 
 function renderPack(pack, container) {
@@ -750,10 +1069,13 @@ function renderPack(pack, container) {
     chapter.levels.forEach((level, li) => {
       const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
       if (!cardData[cardId]) cardData[cardId] = { stickers: [], comment: '', crown: false, scissors: false };
-      // Auto-crown for special level types (t:1 = rewarded, t:2 = coins)
       if ((level.t === 1 || level.t === 2) && !cardData[cardId]._crownSet) {
         cardData[cardId].crown = true;
         cardData[cardId]._crownSet = true;
+      }
+      if (level.parts && !cardData[cardId]._scissorsSet) {
+        cardData[cardId].scissors = true;
+        cardData[cardId]._scissorsSet = true;
       }
 
       const opaque = countOpaque(level);
@@ -774,6 +1096,8 @@ function renderPack(pack, container) {
       const cssW = level.width * cssCell;
       const cssH = level.height * cssCell;
       const cardW = Math.max(cssW + PAD * 2, MIN_CARD_W);
+      // Safety: ensure canvas never wider than card interior
+      const safeW = cardW - PAD * 2;
       // Physical canvas size for crisp Retina rendering
       const rawW = cssW * dpr;
       const rawH = cssH * dpr;
@@ -807,31 +1131,115 @@ function renderPack(pack, container) {
         meta.appendChild(tb);
       }
 
-      // Crown
+      // Crown with type picker
+      const crownWrap = document.createElement('span');
+      crownWrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+
+      const getCrownLabel = () => {
+        if (!cardData[cardId].crown) return '👑';
+        return '👑' + (cardData[cardId].crownType || '');
+      };
+
       const crown = document.createElement('span');
       crown.className = 'meta-flag' + (cardData[cardId].crown ? ' active' : '');
-      crown.textContent = '👑';
-      crown.title = 'Избранное';
+      crown.textContent = getCrownLabel();
+      crown.title = 'Премиум';
+
+      const crownPicker = document.createElement('div');
+      crownPicker.className = 'crown-picker';
+
+      // Option: plain crown (no type)
+      [['👑🎬', '🎬'], ['👑🪙', '🪙']].forEach(([label, type]) => {
+        const opt = document.createElement('span');
+        opt.className = 'crown-option';
+        opt.textContent = label;
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          cardData[cardId].crown = true;
+          cardData[cardId].crownType = type;
+          crown.textContent = getCrownLabel();
+          crown.classList.add('active');
+          card.classList.add('crowned');
+          crownPicker.classList.remove('open');
+          refreshChapterStats();
+          updatePushBtn();
+        });
+        crownPicker.appendChild(opt);
+      });
+
       crown.addEventListener('click', (e) => {
         e.stopPropagation();
-        cardData[cardId].crown = !cardData[cardId].crown;
-        crown.classList.toggle('active', cardData[cardId].crown);
-        card.classList.toggle('crowned', cardData[cardId].crown);
+        // If picker is open — close it without changing state
+        if (crownPicker.classList.contains('open')) {
+          crownPicker.classList.remove('open');
+          return;
+        }
+        // Just open picker — do not set crown until type is chosen
+        document.querySelectorAll('.crown-picker.open').forEach(p => p.classList.remove('open'));
+        crownPicker.classList.add('open');
+      });
+
+      // Add "remove" option at bottom of picker
+      const removeOpt = document.createElement('span');
+      removeOpt.className = 'crown-option';
+      removeOpt.textContent = '✕';
+      removeOpt.title = 'Снять корону';
+      removeOpt.style.cssText = 'color:var(--muted);font-size:13px;font-weight:700;';
+      removeOpt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cardData[cardId].crown = false;
+        cardData[cardId].crownType = '';
+        cardData[cardId]._crownSet = false; // allow re-auto-crown if needed
+        crown.textContent = '👑';
+        crown.classList.remove('active');
+        card.classList.remove('crowned');
+        crownPicker.classList.remove('open');
+        updatePushBtn();
+        // Also remove type badge from meta
+        const existingTypeBadge = meta.querySelector('.type-badge');
+        if (existingTypeBadge) existingTypeBadge.remove();
         refreshChapterStats();
       });
-      meta.appendChild(crown);
+      crownPicker.appendChild(removeOpt);
 
-      // Scissors
+      crownWrap.appendChild(crown);
+      crownWrap.appendChild(crownPicker);
+      meta.appendChild(crownWrap);
+
+      // Scissors — only show for levels with parts
       const scissors = document.createElement('span');
       scissors.className = 'meta-flag' + (cardData[cardId].scissors ? ' active' : '');
-      scissors.textContent = '✂️';
-      scissors.title = 'На удаление';
+      if (level.parts) {
+        const partCount = new Set(level.parts.split('')).size - (level.parts.includes('0') && level.field.split('').every((f,i) => f === '0' || level.parts[i] !== '0') ? 0 : 0);
+        const allPartChars = new Set(level.parts.split(''));
+        const zoneCount = allPartChars.size; // includes '0' as zone 1
+        scissors.textContent = '✂️ ' + zoneCount;
+        scissors.title = 'Разделённый уровень (' + zoneCount + ' зоны)';
+        scissors.style.fontSize = '11px';
+      } else {
+        scissors.textContent = '✂️';
+        scissors.title = 'Разделённый уровень';
+        scissors.style.display = 'none';
+      }
+      // Parts overlay canvas
+      const partsCanvas = document.createElement('canvas');
+      partsCanvas.className = 'parts-overlay';
+      partsCanvas.width = 0; partsCanvas.height = 0; // set later
+      // Will be sized and drawn when canvasWrap is available
+
       scissors.addEventListener('click', (e) => {
         e.stopPropagation();
-        cardData[cardId].scissors = !cardData[cardId].scissors;
-        scissors.classList.toggle('active', cardData[cardId].scissors);
-        card.classList.toggle('scissored', cardData[cardId].scissors);
-        refreshChapterStats();
+        if (level.parts) {
+          // For split levels: toggle only the mask visibility, keep border/icon/counter
+          const overlayVisible = partsCanvas.classList.toggle('visible');
+          cardData[cardId]._partsVisible = overlayVisible;
+        } else {
+          // For non-split: normal toggle
+          cardData[cardId].scissors = !cardData[cardId].scissors;
+          scissors.classList.toggle('active', cardData[cardId].scissors);
+          card.classList.toggle('scissored', cardData[cardId].scissors);
+          refreshChapterStats();
+        }
       });
       meta.appendChild(scissors);
 
@@ -856,7 +1264,16 @@ function renderPack(pack, container) {
         if (level.field[i] !== '0' && level.gems[i] !== level.field[i]) misplacedCount++;
       }
       const solvePercent = opaqueCount > 0 ? Math.round((misplacedCount / opaqueCount) * 100) : 0;
-      dimEl.innerHTML = opaqueCount + ' px&thinsp;<span style="color:var(--accent2);font-size:10px;" title="% уровня для решения">◇ ' + solvePercent + '%</span>';
+      function updateDimEl(lv) {
+        const oc = countOpaque(lv);
+        let mc = 0;
+        for (let i = 0; i < lv.field.length; i++) {
+          if (lv.field[i] !== '0' && lv.gems[i] !== lv.field[i]) mc++;
+        }
+        const sp = oc > 0 ? Math.round((mc / oc) * 100) : 0;
+        dimEl.innerHTML = oc + 'px&thinsp;<span style="color:var(--accent2);font-size:10px;" title="% уровня для решения">◇ ' + sp + '%</span>';
+      }
+      updateDimEl(level);
       meta.appendChild(dimEl);
 
       card.appendChild(meta);
@@ -898,6 +1315,77 @@ function renderPack(pack, container) {
       commentBubble.className = 'comment-bubble';
       updateCommentBubble(commentBubble, cardData[cardId].comment);
       canvasWrap.appendChild(commentBubble);
+
+      // Draw parts overlay if level has parts
+      if (level.parts) {
+        partsCanvas.width = rawW;
+        partsCanvas.height = rawH;
+        partsCanvas.style.cssText = `position:absolute;top:0;left:0;width:${cssW}px;height:${cssH}px;image-rendering:pixelated;`;
+        const pCtx = partsCanvas.getContext('2d');
+        const PART_COLORS = {
+          '1': 'rgba(255,100,100,0.45)',
+          '2': 'rgba(100,180,255,0.45)',
+          '3': 'rgba(100,220,120,0.45)',
+          '4': 'rgba(255,200,80,0.45)',
+        };
+        const PART_TEXT_COLORS = {
+          '1': 'rgba(180,30,30,0.9)',
+          '2': 'rgba(20,100,200,0.9)',
+          '3': 'rgba(20,140,50,0.9)',
+          '4': 'rgba(180,120,0,0.9)',
+        };
+        const pcw = Math.round(rawW / level.width);
+        const pch = Math.round(rawH / level.height);
+
+        // Count pixels and compute centroid per part
+        const partStats = {};
+        for (let y = 0; y < level.height; y++) {
+          for (let x = 0; x < level.width; x++) {
+            const ch2 = level.parts[y * level.width + x];
+            if (!partStats[ch2]) partStats[ch2] = { count: 0, sx: 0, sy: 0, cx: 0, cy: 0, total: 0 };
+            // Count centroid from all cells, but pixel count only from opaque
+            partStats[ch2].total++;
+            partStats[ch2].sx += x;
+            partStats[ch2].sy += y;
+            if (level.field[y * level.width + x] !== '0') partStats[ch2].count++;
+            const col = PART_COLORS[ch2] || 'rgba(200,200,200,0.4)';
+            pCtx.fillStyle = col;
+            pCtx.fillRect(x * pcw, y * pch, pcw, pch);
+          }
+        }
+
+        // Draw size badge at centroid of each part
+        Object.entries(partStats).forEach(([part, st]) => {
+          const cx = (st.sx / st.total + 0.5) * pcw;
+          const cy = (st.sy / st.total + 0.5) * pch;
+          const zoneNum = parseInt(part) + 1; // 0→1, 1→2, 2→3, 3→4
+          const label = zoneNum + ' · ' + st.count + 'px';
+          const fs = Math.max(8, Math.min(11, pcw * 1.2)) * dpr;
+          pCtx.font = "bold " + fs + "px system-ui,sans-serif";
+          pCtx.textAlign = 'center';
+          pCtx.textBaseline = 'middle';
+          const tw = pCtx.measureText(label).width;
+          const bpad = fs * 0.35;
+          const bw = tw + bpad * 2, bh = fs + bpad * 2;
+          // Rounded rect background
+          pCtx.fillStyle = 'rgba(255,255,255,0.82)';
+          const br = bh / 2;
+          const bx = cx - bw/2, by = cy - bh/2;
+          pCtx.beginPath();
+          if (pCtx.roundRect) {
+            pCtx.roundRect(bx, by, bw, bh, br);
+          } else {
+            pCtx.rect(bx, by, bw, bh);
+          }
+          pCtx.fill();
+          // Text
+          pCtx.fillStyle = PART_TEXT_COLORS[part] || '#333';
+          pCtx.fillText(label, cx, cy);
+        });
+
+        if (cardData[cardId].scissors) partsCanvas.classList.add('visible');
+        canvasCenter.appendChild(partsCanvas);
+      }
 
       card.appendChild(canvasWrap);
 
@@ -944,6 +1432,10 @@ function renderPack(pack, container) {
             drawLevel(canvas, v, currentMode, dpr);
             const vCtx = canvas.getContext('2d');
             levelCache.set(cardId + '_' + currentMode + '_v' + vIdx, vCtx.getImageData(0, 0, canvas.width, canvas.height));
+            updateDimEl(v);
+            const [vsl, vsc] = sizeLabel(countOpaque(v));
+            badge.textContent = vsl;
+            badge.className = 'size-badge ' + vsc;
             updateVerLabel();
             canvas.classList.remove('flipping');
           }, 150);
@@ -998,8 +1490,9 @@ function renderPack(pack, container) {
         document.querySelectorAll('.comment-popup.open, .sticker-picker.open').forEach(p => {
           if (p !== commentPopup) p.classList.remove('open');
         });
-        commentPopup.classList.toggle('open');
-        if (commentPopup.classList.contains('open')) commentTA.focus();
+        if (commentPopup.classList.contains('open')) { commentPopup.classList.remove('open'); return; }
+        commentPopup.classList.add('open');
+        commentTA.focus();
       }
       pencil.addEventListener('click', openCommentPopup);
       canvas.addEventListener('click', openCommentPopup);
@@ -1061,9 +1554,13 @@ function renderStickers(el, cardId) {
 }
 
 // Close pickers on outside click
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
   document.querySelectorAll('.sticker-picker.open').forEach(p => p.classList.remove('open'));
   document.querySelectorAll('.comment-popup.open').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.crown-picker.open').forEach(p => p.classList.remove('open'));
+  const dd = document.getElementById('chapterDropdown');
+  const inp = document.getElementById('chapterInput');
+  if (dd && !dd.contains(e.target) && e.target !== inp) dd.style.display = 'none';
 });
 
 
@@ -1072,16 +1569,46 @@ function loadToken() {
   const t = localStorage.getItem('gh_token') || '';
   const inp = document.getElementById('githubToken');
   if (inp && t) inp.value = t;
+  updateTokenUI(!!t);
+  if (t) { const pb = document.getElementById('pushBtn'); if (pb) pb.style.display = ''; }
   return t;
+}
+
+function updateTokenUI(isSaved) {
+  const btn = document.getElementById('tokenSaveBtn');
+  const status = document.getElementById('tokenStatus');
+  if (!btn || !status) return;
+  if (isSaved) {
+    btn.style.display = 'none';
+    status.textContent = '✓';
+    status.title = 'Токен сохранён';
+  } else {
+    btn.style.display = '';
+    status.textContent = '';
+    status.title = '';
+  }
+}
+
+function onTokenInput() {
+  const t = document.getElementById('githubToken').value.trim();
+  const saved = localStorage.getItem('gh_token') || '';
+  const btn = document.getElementById('tokenSaveBtn');
+  const status = document.getElementById('tokenStatus');
+  if (t && t !== saved) {
+    btn.style.display = '';
+    status.textContent = '';
+  } else if (!t) {
+    btn.style.display = 'none';
+    status.textContent = '';
+  }
 }
 
 function saveToken(btn) {
   const t = document.getElementById('githubToken').value.trim();
   if (t) {
     localStorage.setItem('gh_token', t);
-    btn.textContent = '✓';
-    btn.classList.add('saved');
-    setTimeout(() => { btn.textContent = 'Сохранить'; btn.classList.remove('saved'); }, 2000);
+    updateTokenUI(true);
+    const pb = document.getElementById('pushBtn'); if (pb) pb.style.display = '';
   }
 }
 
@@ -1104,6 +1631,137 @@ function loadEmbedded() {
   renderAll();
 }
 
+
+// ── Push changes to GitHub ────────────────────────────────────────────────
+const T_LABELS = { 0: 'обычный', 1: '🎬 Rewarded', 2: '🪙 Coins' };
+
+function computeDiff() {
+  const diffs = [];
+  for (const pack of loadedPacks) {
+    const origPack = originalPacks.find(p => p.name === pack.name);
+    pack.data.chapters.forEach((chapter, ci) => {
+      const globalCh = chapterGlobalNum(pack.packNum, ci);
+      (chapter.levels || []).forEach((level, li) => {
+        const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+        const d = cardData[cardId];
+        if (!d) return;
+        let newT = level.t || 0;
+        if (d.crown) {
+          if (d.crownType === '🎬') newT = 1;
+          else if (d.crownType === '🪙') newT = 2;
+        } else {
+          if (level.t === 1 || level.t === 2) newT = 0;
+        }
+        // Compare against original (pre-edit) t value
+        const origChapter = origPack && origPack.data.chapters[ci];
+        const origLevel = origChapter && origChapter.levels && origChapter.levels[li];
+        const origT = origLevel ? (origLevel.t || 0) : (level.t || 0);
+        if (newT !== origT) {
+          diffs.push({ pack: pack.name, ch: globalCh, lv: li + 1, from: origT, to: newT });
+        }
+      });
+    });
+  }
+  return diffs;
+}
+
+function updatePushBtn() {
+  const btn = document.getElementById('pushBtn');
+  if (!btn) return;
+  const diffs = computeDiff();
+  btn.disabled = diffs.length === 0;
+  btn.style.opacity = diffs.length === 0 ? '0.45' : '1';
+  btn.title = diffs.length === 0 ? 'Нет изменений для отправки' : `Отправить изменения (${diffs.length})`;
+}
+
+function pushChanges(btn) {
+  const diffs = computeDiff();
+  if (diffs.length === 0) { showToast('Нет изменений для отправки'); return; }
+
+  // Show diff modal
+  const list = document.getElementById('diffList');
+  const subtitle = document.getElementById('diffSubtitle');
+  subtitle.textContent = `Изменится ${diffs.length} уровень(-я/-ей) в ${new Set(diffs.map(d=>d.pack)).size} файле(-ах)`;
+  list.innerHTML = '';
+  diffs.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'diff-item';
+    item.innerHTML = `
+      <span class="diff-pack">${d.pack}</span>
+      <span>Гл. ${d.ch}, Ур. ${d.lv}</span>
+      <span class="diff-from">${T_LABELS[d.from] || d.from}</span>
+      <span class="diff-arrow">→</span>
+      <span class="diff-to">${T_LABELS[d.to] || d.to}</span>
+    `;
+    list.appendChild(item);
+  });
+  document.getElementById('diffOverlay').classList.add('open');
+}
+
+async function confirmPush() {
+  document.getElementById('diffOverlay').classList.remove('open');
+  const btn = document.getElementById('pushBtn');
+  const token = loadToken();
+  if (!token) { showToast('Нужен токен с правами на запись'); return; }
+  const headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+
+  btn.classList.add('syncing');
+  showToast('Отправляем изменения...');
+
+  try {
+    let changed = 0;
+    for (const pack of loadedPacks) {
+      const updatedData = JSON.parse(JSON.stringify(pack.data));
+      let packChanged = false;
+
+      updatedData.chapters.forEach((chapter, ci) => {
+        const globalCh = chapterGlobalNum(pack.packNum, ci);
+        (chapter.levels || []).forEach((level, li) => {
+          const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
+          const d = cardData[cardId];
+          if (!d) return;
+          let newT = level.t || 0;
+          if (d.crown) {
+            if (d.crownType === '🎬') newT = 1;
+            else if (d.crownType === '🪙') newT = 2;
+          } else {
+            if (level.t === 1 || level.t === 2) newT = 0;
+          }
+          if (newT !== (level.t || 0)) {
+            level.t = newT;
+            packChanged = true;
+          }
+        });
+      });
+
+      if (!packChanged) continue;
+
+      const fileName = pack.name + '.json';
+      const metaRes = await fetch(GITHUB_API + '/' + fileName + '?t=' + Date.now(), { headers });
+      if (!metaRes.ok) throw new Error('Не удалось получить SHA для ' + fileName);
+      const meta = await metaRes.json();
+      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(updatedData, null, 2))));
+      const commitRes = await fetch(GITHUB_API + '/' + fileName, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ message: `Gallery: update level types in ${fileName}`, content: b64, sha: meta.sha })
+      });
+      if (!commitRes.ok) throw new Error('Ошибка коммита ' + fileName + ': ' + commitRes.status);
+      // Update original snapshot
+      const orig = originalPacks.find(p => p.name === pack.name);
+      if (orig) orig.data = JSON.parse(JSON.stringify(updatedData));
+      changed++;
+    }
+
+    btn.classList.remove('syncing');
+    showToast(`✓ Отправлено: ${changed} файл(а)`);
+    updatePushBtn();
+  } catch(e) {
+    btn.classList.remove('syncing');
+    showToast('Ошибка: ' + e.message);
+    console.error(e);
+  }
+}
+
 // ── GitHub Sync ───────────────────────────────────────────────────────────
 const GITHUB_API = 'https://api.github.com/repos/EvrikaGames/DiamondPuzzle/contents/DiamondPuzzleUnity/Assets/Game/Cfg/Resources/Configs/Levels';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/EvrikaGames/DiamondPuzzle/main/DiamondPuzzleUnity/Assets/Game/Cfg/Resources/Configs/Levels';
@@ -1119,7 +1777,7 @@ async function syncFromGitHub(btn) {
 
   try {
     // 1. Get file list dynamically from GitHub API
-    const res = await fetch(GITHUB_API, { headers });
+    const res = await fetch(GITHUB_API + '?t=' + Date.now(), { headers });
     if (!res.ok) throw new Error('GitHub API: ' + res.status + (res.status === 401 ? ' — неверный токен' : ''));
     const files = await res.json();
 
@@ -1135,7 +1793,7 @@ async function syncFromGitHub(btn) {
 
     // 3. Fetch each file via GitHub API (supports CORS with token)
     const results = await Promise.all(packFiles.map(async f => {
-      const r = await fetch(GITHUB_API + '/' + f.name, { headers });
+      const r = await fetch(GITHUB_API + '/' + f.name + '?t=' + Date.now(), { headers });
       if (!r.ok) throw new Error('Не удалось загрузить ' + f.name);
       const meta = await r.json();
       // GitHub API returns base64-encoded content
@@ -1145,6 +1803,7 @@ async function syncFromGitHub(btn) {
     }));
 
     // 4. Sort and render
+    const prevPacks = loadedPacks;
     loadedPacks = results.sort((a, b) => {
       if (a.packNum === null && b.packNum === null) return 0;
       if (a.packNum === null) return -1;
@@ -1152,8 +1811,41 @@ async function syncFromGitHub(btn) {
       return a.packNum - b.packNum;
     });
 
+    // Detect changes vs previous sync
+    const changes = [];
+    if (prevPacks.length > 0) {
+      for (const pack of loadedPacks) {
+        const prev = prevPacks.find(p => p.name === pack.name);
+        if (!prev) { changes.push({ type: 'new_pack', pack: pack.name }); continue; }
+        pack.data.chapters.forEach((ch, ci) => {
+          const globalCh = chapterGlobalNum(pack.packNum, ci);
+          const prevCh = prev.data.chapters[ci];
+          (ch.levels || []).forEach((lv, li) => {
+            const prevLv = prevCh && prevCh.levels && prevCh.levels[li];
+            if (!prevLv) {
+              changes.push({ type: 'new_level', pack: pack.name, ch: globalCh, lv: li + 1 });
+            } else if (JSON.stringify(lv) !== JSON.stringify(prevLv)) {
+              const details = [];
+              if ((lv.t||0) !== (prevLv.t||0)) details.push({ kind: 't', from: prevLv.t||0, to: lv.t||0 });
+              if (lv.width !== prevLv.width || lv.height !== prevLv.height) details.push({ kind: 'size', from: prevLv.width+'×'+prevLv.height, to: lv.width+'×'+lv.height });
+              if (lv.field !== prevLv.field) details.push({ kind: 'field' });
+              if (lv.gems !== prevLv.gems) details.push({ kind: 'gems' });
+              if (!!lv.parts !== !!prevLv.parts) details.push({ kind: 'parts', added: !!lv.parts });
+              if (!lv.previous && prevLv.previous) details.push({ kind: 'prev_removed' });
+              if (lv.previous && !prevLv.previous) details.push({ kind: 'prev_added' });
+              changes.push({ type: 'changed', pack: pack.name, ch: globalCh, lv: li + 1, details });
+            }
+          });
+        });
+      }
+    }
+
     document.getElementById('emptyState').style.display = 'none';
+    // Store original pack data for diff comparison
+    originalPacks = JSON.parse(JSON.stringify(loadedPacks));
     renderAll();
+    showChangelog(changes);
+    updatePushBtn();
 
     btn.classList.remove('syncing');
     btn.classList.add('done');
@@ -1169,18 +1861,39 @@ async function syncFromGitHub(btn) {
 
 // ── Snapshot ──────────────────────────────────────────────────────────────
 function populateChapterSelect() {
-  const dl = document.getElementById('chapterList');
-  if (!dl) return;
-  dl.innerHTML = '';
+  const dd = document.getElementById('chapterDropdown');
+  const inp = document.getElementById('chapterInput');
+  if (!dd) return;
+  dd.innerHTML = '';
   const headers = document.querySelectorAll('.chapter-header');
   headers.forEach(h => {
     const title = h.querySelector('.chapter-title');
     if (!title) return;
     const num = title.textContent.replace('Глава ', '').trim();
-    const opt = document.createElement('option');
-    opt.value = num;
-    dl.appendChild(opt);
+    const item = document.createElement('div');
+    item.textContent = 'Глава ' + num;
+    item.style.cssText = 'padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text);white-space:nowrap;';
+    item.addEventListener('mouseenter', () => item.style.background = 'var(--surface2)');
+    item.addEventListener('mouseleave', () => item.style.background = '');
+    item.addEventListener('click', () => {
+      inp.value = num;
+      dd.style.display = 'none';
+      doChapterJump(num);
+      setTimeout(() => { inp.value = ''; }, 600);
+    });
+    dd.appendChild(item);
   });
+}
+
+function toggleChapterDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('chapterDropdown');
+  const inp = document.getElementById('chapterInput');
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  const rect = inp.getBoundingClientRect();
+  dd.style.top = (rect.bottom + 4) + 'px';
+  dd.style.left = rect.left + 'px';
+  dd.style.display = 'block';
 }
 
 function scrollToChapter(num) {
@@ -1213,7 +1926,7 @@ function copySnapshot(btn) {
 
   loadedPacks.forEach(pack => {
     let packHasContent = false;
-    const packLines = [pack.name];
+    const packLines = [`— ${pack.name}`];
 
     pack.data.chapters.forEach((chapter, ci) => {
       if (!chapter.levels || chapter.levels.length === 0) return;
@@ -1227,15 +1940,10 @@ function copySnapshot(btn) {
         const hasComment = d.comment.trim().length > 0;
         if (!hasStickers && !hasComment) return;
 
-        const flags = (d.crown ? ' 👑' : '') + (d.scissors ? ' ✂️' : '');
-        let line = `— Глава ${globalCh}, Уровень ${li + 1}${flags}`;
-        if (hasStickers) line += '  ' + d.stickers.join('');
-        packLines.push(line);
-        if (hasComment) {
-          packLines.push('');
-          packLines.push('* ' + d.comment.trim().replace(/\n/g, '\n  '));
-          packLines.push('');
-        }
+        const flags = (d.crown ? ' ' + (d.crownType ? '👑' + d.crownType : '👑') : '') + (d.scissors ? ' ✂️' : '');
+        const stickersStr = hasStickers ? ' ' + d.stickers.join('') : '';
+        const commentStr = hasComment ? ': ' + d.comment.trim().replace(/\n/g, ' ') : '';
+        packLines.push(`   * Глава ${globalCh}, Уровень ${li + 1}${flags}${stickersStr}${commentStr}`);
         packHasContent = true;
       });
     });
@@ -1251,7 +1959,7 @@ function copySnapshot(btn) {
 
   const text = lines.join('\n');
   function doShow() {
-    showToast('Снапшот скопирован ✓');
+    showToast('Заметки собраны ✓');
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 2000);
   }
@@ -1272,6 +1980,46 @@ function fallbackCopy(text, cb) {
   try { document.execCommand('copy'); cb(); }
   catch(e) { showToast('Не удалось скопировать :('); }
   document.body.removeChild(ta);
+}
+
+
+function showChangelog(changes) {
+  if (!changes || changes.length === 0) return;
+  const list = document.getElementById('changelogList');
+  const panel = document.getElementById('changelogPanel');
+  list.innerHTML = '';
+  changes.slice(0, 50).forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'changelog-item';
+    if (c.type === 'new_pack') {
+      item.innerHTML = `<span class="changelog-badge badge-pack">Новый пак</span> ${c.pack}`;
+    } else if (c.type === 'new_level') {
+      item.innerHTML = `<span class="changelog-badge badge-new">Новый</span> ${c.pack} · Гл. ${c.ch}, Ур. ${c.lv}`;
+      item.addEventListener('click', () => scrollToChapter(c.ch));
+    } else {
+      const T_L = { 0: 'обычный', 1: '🎬', 2: '🪙' };
+      const detailParts = (c.details || []).map(d => {
+        if (d.kind === 't') return `тип ${T_L[d.from]||d.from}→${T_L[d.to]||d.to}`;
+        if (d.kind === 'size') return `размер ${d.from}→${d.to}`;
+        if (d.kind === 'field') return 'схема';
+        if (d.kind === 'gems') return 'гемы';
+        if (d.kind === 'parts') return d.added ? '+разделение' : '-разделение';
+        if (d.kind === 'prev_added') return '+версия';
+        if (d.kind === 'prev_removed') return '-версия';
+        return '';
+      }).filter(Boolean).join(', ');
+      item.innerHTML = `<span class="changelog-badge badge-changed">Изменён</span> ${c.pack} · Гл.&thinsp;${c.ch}, Ур.&thinsp;${c.lv}` + (detailParts ? ` <span style="color:var(--muted);font-size:10px;">(${detailParts})</span>` : '');
+      item.addEventListener('click', () => scrollToChapter(c.ch));
+    }
+    list.appendChild(item);
+  });
+  if (changes.length > 50) {
+    const more = document.createElement('div');
+    more.style.cssText = 'font-size:11px;color:var(--muted);padding:6px 0;';
+    more.textContent = `+ ещё ${changes.length - 50} изменений`;
+    list.appendChild(more);
+  }
+  panel.classList.add('open');
 }
 
 function showToast(msg) {
@@ -1322,9 +2070,11 @@ function drawLevel(canvas, level, mode, dpr) {
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.fillStyle = gemColor;
         ctx.fill();
-        ctx.strokeStyle = isCorrect ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
-        ctx.lineWidth = Math.max(dpr, r * 0.3);
+        // Stroke: dark outline always for visibility; no confusing white border
+        ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+        ctx.lineWidth = Math.max(dpr, r * 0.25);
         ctx.stroke();
+
         ctx.restore();
       }
     }
