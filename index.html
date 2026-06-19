@@ -69,20 +69,37 @@
   .filter-group { display: flex; gap: 4px; }
 
   .filter-sep { width: 1px; background: var(--border); margin: 0 4px; align-self: stretch; }
+  .fcheck {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition: background 0.1s;
+    user-select: none;
+  }
+  .fcheck:hover { background: var(--surface2); }
+  .fcheck input { cursor: pointer; accent-color: var(--accent); }
 
   .level-card.hidden-by-filter { display: none; }
 
   /* stats bar */
   .stats-bar {
-    padding: 6px 28px 10px;
+    padding: 5px 20px;
     font-size: 11px;
     color: var(--muted);
     display: flex;
-    gap: 16px;
+    gap: 10px;
     flex-wrap: wrap;
     align-items: center;
     border-bottom: 1px solid var(--border);
     background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 190;
   }
   .stats-chip {
     display: inline-flex;
@@ -269,6 +286,11 @@
   .level-card:hover { transform: translateY(-2px); border-color: var(--accent); }
   .level-card.crowned { box-shadow: 0 0 0 2px #ffd036, 0 4px 16px rgba(255,208,54,0.25); border-color: #ffd036; }
   .level-card.scissored { box-shadow: 0 0 0 2px #38a5ff, 0 4px 16px rgba(56,165,255,0.2); border-color: #38a5ff; }
+  .level-card.timed { box-shadow: 0 0 0 2px #ef4444, 0 4px 16px rgba(239,68,68,0.2); border-color: #ef4444; }
+  .level-card.crowned.timed { box-shadow: 0 0 0 2px #ffd036, 0 0 0 4px #ef4444; }
+  .level-card.scissored.timed { box-shadow: 0 0 0 2px #38a5ff, 0 0 0 4px #ef4444; }
+  .timer-overlay { position:absolute; top:0; left:0; pointer-events:none; opacity:0; transition:opacity 0.2s; }
+  .timer-overlay.visible { opacity:1; }
   .level-card.crowned.scissored { box-shadow: 0 0 0 2px #ffd036, 0 0 0 4px #38a5ff; }
 
   .level-meta {
@@ -770,19 +792,26 @@
 
   <div class="filter-sep"></div>
 
-  <div class="filter-group" id="sizeFilters">
-    <button class="filter-btn" onclick="toggleSizeFilter('S',this)">S</button>
-    <button class="filter-btn" onclick="toggleSizeFilter('M',this)">M</button>
-    <button class="filter-btn" onclick="toggleSizeFilter('L',this)">L</button>
-    <button class="filter-btn" onclick="toggleSizeFilter('XL',this)">XL</button>
-    <button class="filter-btn" onclick="toggleSizeFilter('XXL',this)">XXL</button>
-  </div>
-
-  <div class="filter-sep"></div>
-
-  <div class="filter-group">
-    <button class="filter-btn" id="filterPremium" onclick="toggleTypeFilter('premium',this)">👑 Премиум</button>
-    <button class="filter-btn" id="filterSplit" onclick="toggleTypeFilter('split',this)">✂️ Разделённые</button>
+  <div style="position:relative;flex-shrink:0;">
+    <button class="filter-btn" id="filterDropBtn" onclick="toggleFilterDrop(event)">Фильтр <span id="filterCount" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:0 5px;font-size:10px;margin-left:4px;"></span></button>
+    <div id="filterDrop" style="display:none;position:fixed;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;min-width:180px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.12);">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">Размер</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+        <label class="fcheck" data-size="S"><input type="checkbox" onchange="onFilterCheck('size','S',this)"> S</label>
+        <label class="fcheck" data-size="M"><input type="checkbox" onchange="onFilterCheck('size','M',this)"> M</label>
+        <label class="fcheck" data-size="L"><input type="checkbox" onchange="onFilterCheck('size','L',this)"> L</label>
+        <label class="fcheck" data-size="XL"><input type="checkbox" onchange="onFilterCheck('size','XL',this)"> XL</label>
+        <label class="fcheck" data-size="XXL"><input type="checkbox" onchange="onFilterCheck('size','XXL',this)"> XXL</label>
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;">Тип</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label class="fcheck"><input type="checkbox" id="fPremium" onchange="onFilterCheck('premium',null,this)"> 👑 Премиум</label>
+        <label class="fcheck"><input type="checkbox" id="fSplit" onchange="onFilterCheck('split',null,this)"> ✂️ Разделённые</label>
+        <label class="fcheck"><input type="checkbox" id="fTimed" onchange="onFilterCheck('timed',null,this)"> ⏱ На время</label>
+        <label class="fcheck"><input type="checkbox" id="fPrev" onchange="onFilterCheck('prev',null,this)"> ◀ С версиями</label>
+      </div>
+      <button onclick="clearFilters()" style="margin-top:12px;width:100%;padding:5px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">Сбросить</button>
+    </div>
   </div>
 
   <div class="jump-group" style="flex-shrink:0;">
@@ -853,13 +882,14 @@
     <div class="help-section">
       <h3>Навигация</h3>
       <div class="help-row"><span class="help-icon">📂</span><span class="help-desc"><b>Загрузить JSON</b> — загрузить конфиги локально с компьютера</span></div>
-      <div class="help-row"><span class="help-icon">🔄</span><span class="help-desc"><b>Синхронизировать</b> — подтянуть актуальные паки с GitHub (нужен токен)</span></div>
+      <div class="help-row"><span class="help-icon">🔄</span><span class="help-desc"><b>Синхронизировать</b> — подтянуть актуальные паки с GitHub (нужен токен). После синхронизации показывает список изменений</span></div>
+      <div class="help-row"><span class="help-icon">⚙️</span><span class="help-desc"><b>Фильтр</b> — по размеру (S–XXL) и типу уровня: Премиум, Разделённые, На время, С версиями</span></div>
     </div>
 
     <div class="help-section">
       <h3>Экспорт и изменения</h3>
       <div class="help-row"><span class="help-icon">📋</span><span class="help-desc"><b>Собрать заметки</b> — копирует все комментарии в буфер</span></div>
-      <div class="help-row"><span class="help-icon">⬆️</span><span class="help-desc"><b>Отправить изменения</b> — активна только если есть изменения поля <code>t</code>. Показывает список изменений и отправляет коммит на GitHub</span></div>
+      <div class="help-row"><span class="help-icon">⬆️</span><span class="help-desc"><b>Отправить изменения</b> — активна только при наличии изменений поля <code>t</code>. Показывает diff и отправляет коммит на GitHub</span></div>
     </div>
 
     <div class="help-section">
@@ -870,14 +900,20 @@
     </div>
 
     <div class="help-section">
-      <h3>Индикаторы</h3>
-      <div class="help-row"><span class="help-icon">👑🎬</span><span class="help-desc">Rewarded (t=1) — премиум уровень за Rewarded</span></div>
-      <div class="help-row"><span class="help-icon">👑🪙</span><span class="help-desc">Coins (t=2) — премиум уровень за Coins</span></div>
-      <div class="help-row"><span class="help-icon">✂️ N</span><span class="help-desc"><b>Разделённый уровень</b> — отображается только у уровней с заполненным полем <code>parts</code>. Клик показывает/скрывает маску зон</span></div>
-      <div class="help-row"><span class="help-icon">✏️</span><span class="help-desc"><b>Комментарий</b> — открывает попап с текстом и быстрыми фразами</span></div>
-      <div class="help-row"><span class="help-icon">◀ 2/2</span><span class="help-desc"><b>Версии</b> — отображается у уровней с полем <code>previous</code>. Клик циклично переключает версии картинки</span></div>
+      <h3>Индикаторы на карточке</h3>
+      <div class="help-row"><span class="help-icon">👑🎬</span><span class="help-desc">Rewarded (t=1) — премиум уровень за Rewarded. Клик открывает выбор типа короны</span></div>
+      <div class="help-row"><span class="help-icon">👑🪙</span><span class="help-desc">Coins (t=2) — премиум уровень за Coins. Меняет поле <code>t</code> в конфиге при отправке</span></div>
+      <div class="help-row"><span class="help-icon">✂️ N</span><span class="help-desc"><b>Разделённый уровень</b> — поле <code>parts</code>. N — кол-во зон. Клик показывает/скрывает цветную маску зон</span></div>
+      <div class="help-row"><span class="help-icon">⏱ W×H</span><span class="help-desc"><b>Зона на время</b> — поле <code>z</code>. W×H — размер области. Клик показывает/скрывает маску зоны с таймером</span></div>
+      <div class="help-row"><span class="help-icon">✏️</span><span class="help-desc"><b>Комментарий</b> — открывает попап с текстом и быстрыми фразами. Клик по картинке тоже открывает</span></div>
+      <div class="help-row"><span class="help-icon">◀ 2/2</span><span class="help-desc"><b>Версии</b> — поле <code>previous</code>. Клик циклично переключает версии картинки (актуальная = последний номер)</span></div>
+    </div>
+
+    <div class="help-section">
+      <h3>Метрики</h3>
       <div class="help-row"><span class="help-icon">S–XXL</span><span class="help-desc">Размер уровня по кол-ву непрозрачных блоков: S ≤250, M ≤500, L ≤900, XL ≤1200, XXL 1201+</span></div>
-      <div class="help-row"><span class="help-icon">◇ 94%</span><span class="help-desc">Процент gems не на своих местах</span></div>
+      <div class="help-row"><span class="help-icon">Npx</span><span class="help-desc">Количество непрозрачных блоков в уровне</span></div>
+      <div class="help-row"><span class="help-icon">◇ 94%</span><span class="help-desc">Процент gems не на своих местах — сложность уровня</span></div>
     </div>
 
     <button class="help-close" onclick="document.getElementById('helpModal').classList.remove('open')">Закрыть</button>
@@ -913,7 +949,7 @@ const STICKER_OPTIONS = ['⚠️','✅','❌','🔥','💡','👀','🎯','💬'
 let currentMode = 'clean';
 const levelCache = new Map();
 let loadedPacks = []; // [{name, packNum, data}]
-const activeFilters = { sizes: new Set(), premium: false, split: false };
+const activeFilters = { sizes: new Set(), premium: false, split: false, timed: false, prev: false };
 let originalPacks = []; // snapshot from last sync
 
 function collectVersions(level) {
@@ -963,20 +999,55 @@ function chapterGlobalNum(packNum, ci) {
 }
 
 
-function toggleSizeFilter(size, btn) {
-  if (activeFilters.sizes.has(size)) {
-    activeFilters.sizes.delete(size);
-    btn.classList.remove('active');
+function toggleFilterDrop(e) {
+  e.stopPropagation();
+  const drop = document.getElementById('filterDrop');
+  const btn = document.getElementById('filterDropBtn');
+  if (drop.style.display !== 'none') { drop.style.display = 'none'; return; }
+  const rect = btn.getBoundingClientRect();
+  drop.style.top = (rect.bottom + 4) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.style.display = 'block';
+}
+
+function onFilterCheck(type, size, cb) {
+  if (type === 'size') {
+    if (cb.checked) activeFilters.sizes.add(size);
+    else activeFilters.sizes.delete(size);
   } else {
-    activeFilters.sizes.add(size);
-    btn.classList.add('active');
+    activeFilters[type] = cb.checked;
   }
+  updateFilterCount();
+  applyFilters();
+}
+
+function updateFilterCount() {
+  const n = activeFilters.sizes.size + (activeFilters.premium?1:0) + (activeFilters.split?1:0) + (activeFilters.timed?1:0) + (activeFilters.prev?1:0);
+  const el = document.getElementById('filterCount');
+  const btn = document.getElementById('filterDropBtn');
+  if (el) { el.textContent = n; el.style.display = n > 0 ? 'inline' : 'none'; }
+  if (btn) btn.classList.toggle('active', n > 0);
+}
+
+function clearFilters() {
+  activeFilters.sizes.clear();
+  activeFilters.premium = false;
+  activeFilters.split = false;
+  activeFilters.timed = false;
+  activeFilters.prev = false;
+  document.querySelectorAll('#filterDrop input[type=checkbox]').forEach(cb => cb.checked = false);
+  updateFilterCount();
+  applyFilters();
+}
+
+function toggleSizeFilter(size, btn) {
+  if (activeFilters.sizes.has(size)) activeFilters.sizes.delete(size);
+  else activeFilters.sizes.add(size);
   applyFilters();
 }
 
 function toggleTypeFilter(type, btn) {
   activeFilters[type] = !activeFilters[type];
-  btn.classList.toggle('active', activeFilters[type]);
   applyFilters();
 }
 
@@ -984,7 +1055,9 @@ function applyFilters() {
   const hasSizeFilter = activeFilters.sizes.size > 0;
   const hasPremium = activeFilters.premium;
   const hasSplit = activeFilters.split;
-  const noFilter = !hasSizeFilter && !hasPremium && !hasSplit;
+  const hasTimed = activeFilters.timed;
+  const hasPrev = activeFilters.prev;
+  const noFilter = !hasSizeFilter && !hasPremium && !hasSplit && !hasTimed && !hasPrev;
 
   document.querySelectorAll('.level-card[data-card-id]').forEach(card => {
     const cardId = card.dataset.cardId;
@@ -997,13 +1070,17 @@ function applyFilters() {
     const [sl] = sizeLabel(opaque);
     const isPremium = d.crown;
     const isSplit = !!level.parts;
+    const isTimed = !!level.z;
+    const isPrev = !!level.previous;
 
     let show = true;
     if (!noFilter) {
       const sizeOk = !hasSizeFilter || activeFilters.sizes.has(sl);
       const premiumOk = !hasPremium || isPremium;
+      const timedOk = !hasTimed || isTimed;
+      const prevOk = !hasPrev || isPrev;
       const splitOk = !hasSplit || isSplit;
-      show = sizeOk && premiumOk && splitOk;
+      show = sizeOk && premiumOk && splitOk && timedOk && prevOk;
     }
     card.classList.toggle('hidden-by-filter', !show);
   });
@@ -1013,7 +1090,7 @@ function updateStatsBar() {
   const bar = document.getElementById('statsBar');
   if (!loadedPacks.length) { bar.style.display = 'none'; return; }
 
-  let total = 0, counts = {S:0,M:0,L:0,XL:0,XXL:0}, premium = 0, split = 0;
+  let total = 0, counts = {S:0,M:0,L:0,XL:0,XXL:0}, rewarded = 0, coins = 0, split = 0, timed = 0;
   loadedPacks.forEach(pack => {
     pack.data.chapters.forEach((ch, ci) => {
       const globalCh = chapterGlobalNum(pack.packNum, ci);
@@ -1023,8 +1100,10 @@ function updateStatsBar() {
         counts[sl]++;
         const cardId = `${pack.name}__ch${globalCh}__lv${li+1}`;
         const d = cardData[cardId] || {};
-        if (d.crown) premium++;
+        if (lv.t === 1) rewarded++;
+        else if (lv.t === 2) coins++;
         if (lv.parts) split++;
+        if (lv.z) timed++;
       });
     });
   });
@@ -1037,11 +1116,15 @@ function updateStatsBar() {
   ['S','M','L','XL','XXL'].forEach(s => {
     if (counts[s] > 0) html += `<span class="stats-chip" style="background:${SIZE_BG[s]};color:${SIZE_COLORS[s]}">${s} ${counts[s]} <span style="opacity:0.6">${pct(counts[s])}</span></span>`;
   });
-  if (premium > 0) html += `<span class="stats-chip">👑 ${premium} <span style="opacity:0.6">${pct(premium)}</span></span>`;
+  if (rewarded > 0) html += `<span class="stats-chip">👑🎬 ${rewarded} <span style="opacity:0.6">${pct(rewarded)}</span></span>`;
+  if (coins > 0) html += `<span class="stats-chip">👑🪙 ${coins} <span style="opacity:0.6">${pct(coins)}</span></span>`;
   if (split > 0) html += `<span class="stats-chip">✂️ ${split} <span style="opacity:0.6">${pct(split)}</span></span>`;
+  if (timed > 0) html += `<span class="stats-chip">⏱ ${timed} <span style="opacity:0.6">${pct(timed)}</span></span>`;
 
   bar.innerHTML = html;
   bar.style.display = 'flex';
+  const hdr = document.querySelector('header');
+  if (hdr) bar.style.top = hdr.offsetHeight + 'px';
 }
 
 function setMode(mode, btn) {
@@ -1198,7 +1281,7 @@ function renderPack(pack, container) {
 
     chapter.levels.forEach((level, li) => {
       const cardId = `${pack.name}__ch${globalCh}__lv${li + 1}`;
-      if (!cardData[cardId]) cardData[cardId] = { stickers: [], comment: '', crown: false, scissors: false };
+      if (!cardData[cardId]) cardData[cardId] = { stickers: [], comment: '', crown: false, scissors: false, timerVisible: false };
       if ((level.t === 1 || level.t === 2) && !cardData[cardId]._crownSet) {
         cardData[cardId].crown = true;
         cardData[cardId]._crownSet = true;
@@ -1351,6 +1434,30 @@ function renderPack(pack, container) {
         scissors.title = 'Разделённый уровень';
         scissors.style.display = 'none';
       }
+
+      // Timer icon
+      const timer = document.createElement('span');
+      timer.className = 'meta-flag';
+      timer.textContent = '⏱';
+      if (!level.z) {
+        timer.style.display = 'none';
+      } else {
+        const timeSec = level.z[level.z.length - 1];
+        const mm = Math.floor(timeSec / 60), ss = timeSec % 60;
+        timer.title = 'Зона на время';
+        if (!cardData[cardId]._timerSet) {
+          cardData[cardId].timerVisible = true;
+          cardData[cardId]._timerSet = true;
+        }
+        timer.classList.add('active'); // always active — red border is permanent
+        const _ts = level.z[4];
+        const _mm = Math.floor(_ts/60), _ss = _ts%60;
+        timer.textContent = '⏱ ' + level.z[2] + '×' + level.z[3];
+        timer.style.fontSize = '11px';
+        card.classList.add('timed');
+      }
+      meta.appendChild(timer);
+
       // Parts overlay canvas
       const partsCanvas = document.createElement('canvas');
       partsCanvas.className = 'parts-overlay';
@@ -1518,6 +1625,64 @@ function renderPack(pack, container) {
 
         if (cardData[cardId].scissors) partsCanvas.classList.add('visible');
         canvasWrap.appendChild(partsCanvas);
+      }
+
+      // Timer overlay
+      const timerOverlay = document.createElement('canvas');
+      timerOverlay.className = 'timer-overlay';
+      if (level.z) {
+        // z = [x, y, width, height, time_seconds]
+        const [zx, zy, zw, zh, timeSec] = level.z;
+        const mm = Math.floor(timeSec / 60), ss = timeSec % 60;
+        const timeLabel = mm + ':' + ss.toString().padStart(2, '0');
+
+        timerOverlay.width = rawW;
+        timerOverlay.height = rawH;
+        const tOffX = Math.floor((cardW - PAD*2 - cssW) / 2);
+        timerOverlay.style.cssText = 'position:absolute;top:' + PAD + 'px;left:' + (PAD + tOffX) + 'px;width:' + cssW + 'px;height:' + cssH + 'px;image-rendering:pixelated;pointer-events:none;';
+
+        const tCtx = timerOverlay.getContext('2d');
+        const tcw = Math.round(rawW / level.width);
+        const tch = Math.round(rawH / level.height);
+
+        // Draw zone rectangle
+        tCtx.fillStyle = 'rgba(239,68,68,0.35)';
+        tCtx.fillRect(zx * tcw, zy * tch, zw * tcw, zh * tch);
+
+        // Red border around zone
+        tCtx.strokeStyle = 'rgba(239,68,68,0.8)';
+        tCtx.lineWidth = dpr * 1.5;
+        tCtx.strokeRect(zx * tcw + dpr, zy * tch + dpr, zw * tcw - dpr*2, zh * tch - dpr*2);
+
+        // Time badge — just below zone, vertically centered on pill
+        {
+          const cx = (zx + zw / 2) * tcw;
+          const cy = (zy + zh) * tch; // bottom edge of zone
+          const fs = Math.max(8, Math.min(11, tcw * 1.4)) * dpr;
+          tCtx.font = 'bold ' + fs + 'px system-ui,sans-serif';
+          tCtx.textAlign = 'center';
+          tCtx.textBaseline = 'middle';
+          const tw2 = tCtx.measureText(timeLabel).width;
+          const bpad = fs * 0.3, bw2 = tw2 + bpad*2, bh2 = fs + bpad*2;
+          const badgeY = cy + bh2 / 2 + dpr; // center of badge is just below zone
+          tCtx.fillStyle = 'rgba(239,68,68,0.92)';
+          tCtx.beginPath();
+          if (tCtx.roundRect) tCtx.roundRect(cx - bw2/2, badgeY - bh2/2, bw2, bh2, bh2/2);
+          else tCtx.rect(cx - bw2/2, badgeY - bh2/2, bw2, bh2);
+          tCtx.fill();
+          tCtx.fillStyle = '#fff';
+          tCtx.fillText(timeLabel, cx, badgeY);
+        }
+
+        if (cardData[cardId].timerVisible) timerOverlay.classList.add('visible');
+        canvasWrap.appendChild(timerOverlay);
+
+        // Click — only toggle mask, keep icon active and red border always
+        timer.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const showing = timerOverlay.classList.toggle('visible');
+          cardData[cardId].timerVisible = showing;
+        });
       }
 
       card.appendChild(canvasWrap);
@@ -1694,6 +1859,9 @@ document.addEventListener('click', (e) => {
   const dd = document.getElementById('chapterDropdown');
   const inp = document.getElementById('chapterInput');
   if (dd && !dd.contains(e.target) && e.target !== inp) dd.style.display = 'none';
+  const fd = document.getElementById('filterDrop');
+  const fb = document.getElementById('filterDropBtn');
+  if (fd && !fd.contains(e.target) && e.target !== fb) fd.style.display = 'none';
 });
 
 
